@@ -1,4 +1,5 @@
 from enum import Enum
+import random
 class Colour(Enum):
     WHITE = 0
     BLACK = 1
@@ -7,11 +8,11 @@ class Colour(Enum):
     GREEN = 4
     YELLOW = 5
 class Board:
-    def __init__(self):
-        self.height = 0
-        self.width = 0
-        self.timer = 0
-        self.colour = Colour.Colour()
+    def __init__(self, height=0, width=0, timer=0):
+        self.height = height
+        self.width = width
+        self.board = []
+        self.timer = timer
 
     def getHeight(self):
         return self.height
@@ -27,3 +28,10 @@ class Board:
 
     def getTime(self):
         return self.timer
+
+    def initializeBoard(self):
+        self.board = [[0 for i in range(self.height)]
+                      for j in range(self.width)]
+
+    def printBoard(self):
+        print('\n'.join(' '.join(str(i) for i in row) for row in self.board))
