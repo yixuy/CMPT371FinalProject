@@ -1,12 +1,17 @@
-from asyncio.windows_events import NULL
-from curses.ascii import NUL
-
-
+from enum import Enum
+class Colour(Enum):
+    WHITE = 0
+    BLACK = 1
+    RED = 2
+    BLUE = 3
+    GREEN = 4
+    YELLOW = 5
 class Board:
     def __init__(self):
         self.height = 0
         self.width = 0
         self.timer = 0
+        self.colour = Colour.Colour()
 
     def getHeight(self):
         return self.height
