@@ -1,12 +1,4 @@
-from enum import Enum
 import random
-class Colour(Enum):
-    WHITE = 0
-    BLACK = 1
-    RED = 2
-    BLUE = 3
-    GREEN = 4
-    YELLOW = 5
 class Board:
     def __init__(self, height=0, width=0, timer=0):
         self.height = height
@@ -34,14 +26,8 @@ class Board:
         n_walls = int(self.height * self.width * 0.2)
         for i in range(n_walls):
             row = random.randint(0, self.height-1)
-            newBoard[random.randint(0, self.height-1)][random.randint(0, self.width-1)] = Colour.BLACK
+            newBoard[random.randint(0, self.height-1)][random.randint(0, self.width-1)] = 1
         self.board = newBoard
 
     def printBoard(self):
-        for row in range(self.height):
-            for col in range(self.width):
-                if self.board[row][col] == Colour.BLACK:
-                    print(self.board[row][col].value, end = ' ')
-                else:
-                    print(self.board[row][col], end = ' ')
-            print()
+        print('\n'.join(' '.join(str(i) for i in row) for row in self.board))
