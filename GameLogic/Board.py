@@ -27,7 +27,3 @@ class Board:
 
     def printBoard(self):
         print('\n'.join(' '.join('{0: ^3}'.format(str(i)) for i in row) for row in self.board))
-
-board = Board(10, 10)
-board.initializeBoard()
-board.printBoard()
