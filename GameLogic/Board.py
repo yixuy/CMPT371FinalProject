@@ -30,8 +30,18 @@ class Board:
         return self.timer
 
     def initializeBoard(self):
-        self.board = [[0 for i in range(self.height)]
-                      for j in range(self.width)]
+        newBoard = [[0 for i in range(self.height)] for j in range(self.width)]
+        n_walls = int(self.height * self.width * 0.2)
+        for i in range(n_walls):
+            row = random.randint(0, self.height-1)
+            newBoard[random.randint(0, self.height-1)][random.randint(0, self.width-1)] = Colour.BLACK
+        self.board = newBoard
 
     def printBoard(self):
-        print('\n'.join(' '.join(str(i) for i in row) for row in self.board))
+        for row in range(self.height):
+            for col in range(self.width):
+                if self.board[row][col] == Colour.BLACK:
+                    print(self.board[row][col].value, end = ' ')
+                else:
+                    print(self.board[row][col], end = ' ')
+            print()
