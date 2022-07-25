@@ -1,11 +1,4 @@
-from enum import Enum
-class Colour(Enum):
-    WHITE = 0
-    BLACK = 1
-    RED = 2
-    BLUE = 3
-    GREEN = 4
-    YELLOW = 5
+from util import COLOURS, TILESIZE
 class Player:
     def __init__(self):
         self.x = 0
