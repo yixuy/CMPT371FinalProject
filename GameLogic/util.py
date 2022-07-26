@@ -1,6 +1,6 @@
 COLOURS = {
     # WHITE
-    0:(255, 255, 0),
+    0:(255, 255, 255),
     # BLACK
     -1: (0, 0, 0),
     # RED
@@ -12,5 +12,13 @@ COLOURS = {
     # YELLOW
     4: (255,255,0)
 }
-
+DARKGREY = (40, 40, 40)
+LIGHTGREY = (100, 100, 100)
+WIDTH = 1024
+HEIGHT = 1024
 TILESIZE = 32
+
+FPS = 60
+TITLE = "CMPT371 Demo"
+TILEWIDTH = WIDTH / TILESIZE
+TILEHEIGHT = HEIGHT / TILESIZE
