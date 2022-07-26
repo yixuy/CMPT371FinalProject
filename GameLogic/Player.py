@@ -18,6 +18,10 @@ class Player:
     def setY(self, y):
         self.y = y
 
+    def move(self, dx, dy):
+        self.x += dx
+        self.y += dy
+
     def getColour(self):
         return self.colour
 
