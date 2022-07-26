@@ -34,4 +34,4 @@ class Board:
         self.board = newBoard
 
     def printBoard(self):
-        print('\n'.join(' '.join(str(i) for i in row) for row in self.board))
+        print('\n'.join(' '.join('{0: ^3}'.format(str(i)) for i in row) for row in self.board))
