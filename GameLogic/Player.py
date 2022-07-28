@@ -18,10 +18,10 @@ class Player(pg.sprite.Sprite):
         self.y = y
 
     def move(self, dx=0, dy=0):
-        print(self.x + dx);
+        print(self.x + dx)
         if self.x + dx >= 0 and self.x + dx <= 32 and self.y + dy >= 0 and self.y + dy <= 32:      
-            self.x += dx;
-            self.y += dy;
+            self.x += dx
+            self.y += dy
 
     def update(self):
         self.rect.x = self.x * TILESIZE
