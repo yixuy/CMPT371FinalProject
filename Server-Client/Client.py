@@ -1,0 +1,81 @@
+import pygame
+from Network import Network
+
+pygame.font.init()
+
+width = 700
+height = 700
+win = pygame.display.set_mode((width, height))
+pygame.display.set_caption("Client")
+
+'''Client's Game Implementation:
+        - Onces client ready, waits for Server to signal that game is starting
+        - '''
+def main(network):
+    run = True
+    clock = pygame.time.Clock()
+    n = network
+    player = int(n.getP())
+    print("You are Player", player)
+
+    while run:
+        clock.tick(60)  # Runs the game in 60fps
+        try:
+            # Get data from the server in 60fps (to update own board)
+            print("break1")
+            game = n.send("get")
+            print("game: ", game)
+            # run = False
+        except:
+            run = False
+            print("Couldn't get game")
+            break
+
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                run = False
+                pygame.quit()
+            # if other types of event (movements...)
+
+        # run = False
+
+
+def menu_screen():
+    run = True
+    clock = pygame.time.Clock()
+    n = Network()
+
+    win.fill((128, 128, 128))
+    font = pygame.font.SysFont("comicsans", 60)
+    text = font.render("Click to Play!", True, (255, 0, 0))
+    win.blit(text, (100, 200))
+    pygame.display.update()
+
+    while run:
+        clock.tick(60)  # Makes the client game run in 60fps
+
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                print("quitting game...")
+                pygame.quit()
+                run = False
+            if event.type == pygame.MOUSEBUTTONDOWN:
+                print("button pressed - ready")
+                run = False
+                p1 = n.connect()
+                print("p1: ", p1)
+                new_game = n.send("playerOn")
+                # new_game = n.recv()
+                print("new game received: ", new_game)
+
+    # win = pygame.display.set_mode((width, height))
+    win.fill((200, 200, 128))
+    font = pygame.font.SysFont("comicsans", 60)
+    text = font.render("Player READY", True, (255, 0, 0))
+    win.blit(text, (100, 200))
+    pygame.display.update()
+    main(n)
+
+
+while True:
+    menu_screen()
