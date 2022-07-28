@@ -69,25 +69,6 @@ def threaded_client(conn, p, map):
     # idCount -= 1
     conn.close()
 
-# while True:
-#     conn, addr = s.accept()
-#     p = 111
-#     reply = str(p)
-#     conn.send(reply.encode())
-#     while True:
-#         reply = ""
-#         try:
-#             data = conn.recv(4096).decode()
-#             if data == "playerOn":
-#                 print("data: new player has joined.")
-#                 # playerCount += 1
-#                 reply = "newGameFromServer"
-#             conn.send(reply.encode())
-#         except:
-#             break
-#             conn.close()
-
-
 while True:
     conn, addr = s.accept()
     p = playerCount
