@@ -1,10 +1,31 @@
+from time import sleep
 from util import COLOURS, TILESIZE
-class Player:
-    def __init__(self):
-        self.x = 0
-        self.y = 0
-        self.colour = None
+import pygame as pg
+from settings import *
+# https://www.youtube.com/watch?v=3UxnelT9aCo
+
+class Player(pg.sprite.Sprite):
+    def __init__(self, game, x, y, color):
+        self.colour = color
         self.score = 0
+        self.groups = game.all_sprites
+        pg.sprite.Sprite.__init__(self, self.groups)
+        self.game = game
+        self.image = pg.Surface((TILESIZE, TILESIZE))
+        self.image.fill( self.colour)
+        self.rect = self.image.get_rect()
+        self.x = x
+        self.y = y
+
+    def move(self, dx=0, dy=0):
+        print(self.x + dx);
+        if self.x + dx >= 0 and self.x + dx <= 32 and self.y + dy >= 0 and self.y + dy <= 32:      
+            self.x += dx;
+            self.y += dy;
+
+    def update(self):
+        self.rect.x = self.x * TILESIZE
+        self.rect.y = self.y * TILESIZE    
 
     def getX(self):
         return self.x
@@ -17,10 +38,6 @@ class Player:
 
     def setY(self, y):
         self.y = y
-
-    def move(self, dx, dy):
-        self.x += dx
-        self.y += dy
 
     def getColour(self):
         return self.colour
@@ -36,3 +53,4 @@ class Player:
 
     def decrementScore(self):
         self.score -= 1
+    

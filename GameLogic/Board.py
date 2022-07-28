@@ -1,4 +1,6 @@
 import random
+# from util import *
+
 class Board:
     def __init__(self, height=0, width=0):
         self.height = height
@@ -16,6 +18,12 @@ class Board:
 
     def setWidth(self, width):
         self.width = width
+
+    def getBoard(self):
+        return  self.board;
+    
+    def getItem(self, x, y):
+        return  self.board[x][y];
 
     def initializeBoard(self):
         newBoard = [[0 for i in range(self.height)] for j in range(self.width)]
