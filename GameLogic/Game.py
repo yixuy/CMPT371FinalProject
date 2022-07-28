@@ -23,14 +23,14 @@ class Game:
         # self.player_3 = Player(self, 31, 31, COLOURS[3] )
         # self.player_4 = Player(self, 0, 31, COLOURS[4] )
         
-        board = Board(32, 32)
-        board.initializeBoard()
-        board = board.getBoard()
-        print(board)
+        self.board = Board(32, 32)
+        self.board.initializeBoard()
+        self.board = self.board.getBoard()
         for row in range(0,32):
             for col in range(0,32):
-                if(board[row][col] == -1):
+                if(self.board[row][col] == -1):
                     Wall(self, row, col)
+        
                     
     def start_game(self):
         while True:
@@ -44,7 +44,6 @@ class Game:
         sys.exit()
 
     def update(self):
-    
         self.all_sprites.update()
 
     def draw_grid(self):
@@ -65,16 +64,22 @@ class Game:
             if event.type == pg.QUIT:
                 self.quit()
             if event.type == pg.KEYDOWN:
+                currX = self.player.getX();
+                currY = self.player.getY();
                 if event.key == pg.K_ESCAPE:
                     self.quit()
                 if event.key == pg.K_LEFT:
-                    self.player.move(dx=-1)
+                    if self.board[currX-1][currY] != -1:
+                        self.player.move(dx=-1);
                 if event.key == pg.K_RIGHT:
-                    self.player.move(dx=1)
+                    if self.board[currX+1][currY] != -1:
+                        self.player.move(dx=1)
                 if event.key == pg.K_UP:
-                    self.player.move(dy=-1)
+                    if self.board[currX][currY-1] != -1:
+                        self.player.move(dy=-1)
                 if event.key == pg.K_DOWN:
-                    self.player.move(dy=1)
+                    if self.board[currX][currY+1] != -1:
+                        self.player.move(dy=1)
     # def show_start_screen():
 
 
