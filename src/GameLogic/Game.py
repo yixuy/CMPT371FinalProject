@@ -1,10 +1,10 @@
 import pygame as pg
 import sys
 # from settings import *
-from Wall import *
-from Player import *
-from util import *
-from Board import * 
+from .Wall import *
+from .Player import *
+from .util import *
+from .Board import * 
 # Reference: https://www.youtube.com/watch?v=3UxnelT9aCo
 
 class Game:

@@ -2,7 +2,7 @@ from concurrent.futures import thread
 import socket
 from _thread import *
 import pickle
-
+from GameLogic.Game import Game
 # global playerCount  # or change to rdy count
 
 playerCount = 0
