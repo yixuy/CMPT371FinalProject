@@ -72,13 +72,13 @@ class Game:
                     if self.board[currX-1][currY] != -1:
                         self.player.move(dx=-1);
                 if event.key == pg.K_RIGHT:
-                    if self.board[currX+1][currY] != -1:
+                    if currX + 1 < TILEWIDTH and self.board[currX+1][currY] != -1:
                         self.player.move(dx=1)
                 if event.key == pg.K_UP:
                     if self.board[currX][currY-1] != -1:
                         self.player.move(dy=-1)
                 if event.key == pg.K_DOWN:
-                    if self.board[currX][currY+1] != -1:
+                    if currY + 1 < TILEHEIGHT and self.board[currX][currY+1] != -1:
                         self.player.move(dy=1)
     # def show_start_screen():
 
