@@ -3,7 +3,7 @@ import socket
 from _thread import *
 import pickle
 
-global playerCount  # or change to rdy count
+# global playerCount  # or change to rdy count
 
 playerCount = 0
 gameOn = False
@@ -50,6 +50,7 @@ def threaded_client(conn, p, map):
                 # reset the game
                 if data == "reset":
                     print("data: 'reset' ")
+                    # playerCount = 0
                     # pass
                 # do the tile checking
                 elif data == 'get':
@@ -60,6 +61,14 @@ def threaded_client(conn, p, map):
                 elif data == 'playerOn':
                     print("data: new player has joined.")
                     reply = "newGameFromServer"
+                    print("playerCount: ", playerCount)
+                    # if playerCount >= 1:
+                    #     print(" ++++++++++++ TEST")
+                    if playerCount > 4:
+                        reply = "GameFull"
+                        print("-----------   Game is full")
+                        # playerCount = playerCount - 1 #Error: breaks the game/connection on client side
+                        # playerCount = 4
                 conn.sendall(reply.encode())
 
         except:
@@ -69,12 +78,10 @@ def threaded_client(conn, p, map):
     # idCount -= 1
     conn.close()
 
+
 while True:
     conn, addr = s.accept()
-    p = playerCount
-    reply = str(p)
-    conn.send(reply.encode())
-    print("Connected to: ", addr)
+
     tileMap = 0  # placeholder for tile map
 
     '''START PHASE'''
@@ -86,13 +93,21 @@ while True:
     # gameOn is True when at least one player is connected (initiated the map)
     if gameOn is False:
         print("Starting new game...\nGenerating new map...")
-    #   TODO: Generate Map
+        #   TODO: Generate Map
 
         playerCount += 1
         gameOn = True  # When the first player 'starts' the game, other players just need to join (map generates once)
 
     # If someone has already initiated a new game (map generated), just send players the map + required info.
-    elif 1 < playerCount < 4:
+    elif 1 <= playerCount <= 4:
         playerCount += 1
 
+    p = playerCount
+    reply = str(p)
+    conn.send(reply.encode())
+    print("Connected to: ", addr)
+
     start_new_thread(threaded_client, (conn, playerCount, tileMap))  # playerCount can act as playerNumber
+
+    if playerCount > 4:
+        playerCount -= 1
