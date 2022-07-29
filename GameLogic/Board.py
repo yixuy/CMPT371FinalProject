@@ -1,4 +1,6 @@
 import random
+# from util import *
+
 class Board:
     def __init__(self, height=0, width=0):
         self.height = height
@@ -30,6 +32,12 @@ class Board:
         self.board[y_coord+1][x_coord-1] = 0
         self.board[y_coord-1][x_coord+1] = 0
 
+    def getBoard(self):
+        return  self.board;
+
+    def getItem(self, x, y):
+        return  self.board[x][y];
+
     def initializeBoard(self):
         self.board = [[0 for i in range(self.height)] for j in range(self.width)]
         n_walls = int(self.height * self.width * 0.2)
@@ -43,10 +51,4 @@ class Board:
                     self.setCell(random_X, random_Y)
 
     def printBoard(self):
-        print("TEST")
         print('\n'.join(' '.join('{0: ^3}'.format(str(i)) for i in row) for row in self.board))
-
-
-newBoard = Board(10,10)
-newBoard.initializeBoard()
-newBoard.printBoard()
