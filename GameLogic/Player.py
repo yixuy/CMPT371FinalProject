@@ -18,7 +18,6 @@ class Player(pg.sprite.Sprite):
         self.y = y
 
     def move(self, dx=0, dy=0):
-        print(self.x + dx);
         if self.x + dx >= 0 and self.x + dx < TILEWIDTH and self.y + dy >= 0 and self.y + dy < TILEWIDTH:      
             self.x += dx;
             self.y += dy;
