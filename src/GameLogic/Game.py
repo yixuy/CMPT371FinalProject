@@ -84,12 +84,12 @@ class Game:
 
 
 # create the game object
-g = Game()
-# g.show_start_screen()
-while True:
-    g.game_screen()
-    g.start_game()
-    g.show_go_screen()
+# g = Game()
+# # g.show_start_screen()
+# while True:
+#     g.game_screen()
+#     g.start_game()
+#     g.show_go_screen()
     
     
         

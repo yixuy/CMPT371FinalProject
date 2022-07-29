@@ -22,6 +22,12 @@ except socket.error as e:
 # before refusing outside connections.
 s.listen(1)  # might need to increase (?)
 print("Waiting for a connection, Server Started")
+g = Game()
+# g.show_start_screen()
+while True:
+    g.game_screen()
+    g.start_game()
+    # g.show_go_screen()
 
 '''
 Server:
