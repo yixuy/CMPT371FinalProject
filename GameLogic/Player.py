@@ -1,7 +1,7 @@
 from time import sleep
-from util import COLOURS, TILESIZE
+from util import TILESIZE, TILEWIDTH
 import pygame as pg
-from settings import *
+
 # https://www.youtube.com/watch?v=3UxnelT9aCo
 
 class Player(pg.sprite.Sprite):
@@ -18,10 +18,9 @@ class Player(pg.sprite.Sprite):
         self.y = y
 
     def move(self, dx=0, dy=0):
-        print(self.x + dx)
-        if self.x + dx >= 0 and self.x + dx <= 32 and self.y + dy >= 0 and self.y + dy <= 32:      
-            self.x += dx
-            self.y += dy
+        if self.x + dx >= 0 and self.x + dx < TILEWIDTH and self.y + dy >= 0 and self.y + dy < TILEWIDTH:      
+            self.x += dx;
+            self.y += dy;
 
     def update(self):
         self.rect.x = self.x * TILESIZE
