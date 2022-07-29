@@ -22,12 +22,12 @@ class Game:
         # self.player_2 = Player(self, 31, 0, COLOURS[2] )
         # self.player_3 = Player(self, 31, 31, COLOURS[3] )
         # self.player_4 = Player(self, 0, 31, COLOURS[4] )
-        
-        self.board = Board(32, 32)
+       
+        self.board = Board(int(TILEWIDTH), int(TILEHEIGHT))
         self.board.initializeBoard()
         self.board = self.board.getBoard()
-        for row in range(0,32):
-            for col in range(0,32):
+        for row in range(0,int(TILEWIDTH)):
+            for col in range(0,int(TILEHEIGHT)):
                 if(self.board[row][col] == -1):
                     Wall(self, row, col)
         
@@ -72,13 +72,13 @@ class Game:
                     if self.board[currX-1][currY] != -1:
                         self.player.move(dx=-1);
                 if event.key == pg.K_RIGHT:
-                    if self.board[currX+1][currY] != -1:
+                    if currX + 1 < TILEWIDTH and self.board[currX+1][currY] != -1:
                         self.player.move(dx=1)
                 if event.key == pg.K_UP:
                     if self.board[currX][currY-1] != -1:
                         self.player.move(dy=-1)
                 if event.key == pg.K_DOWN:
-                    if self.board[currX][currY+1] != -1:
+                    if currY + 1 < TILEHEIGHT and self.board[currX][currY+1] != -1:
                         self.player.move(dy=1)
     # def show_start_screen():
 

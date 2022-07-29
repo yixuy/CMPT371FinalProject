@@ -37,3 +37,9 @@ class Network:
     #         return self.client.recv(2048).decode()
     #     except:
     #         pass
+
+    def disconnect(self):
+        try:
+            self.client.close()
+        except:
+            pass
