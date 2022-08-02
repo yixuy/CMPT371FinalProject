@@ -1,6 +1,9 @@
+import sys
 import socket
 from _thread import *
-
+import pickle
+from GameLogic.Board import Board
+import GameLogic.util as util
 # global playerCount  # or change to rdy count
 
 playerCount = 0
@@ -8,6 +11,7 @@ gameOn = False
 gameStart = False
 server = 'localhost'
 port = 50000
+board = None
 
 s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
@@ -33,10 +37,8 @@ Server:
 '''
 
 
-def threaded_client(conn, p, map):
+def threaded_client(conn, p):
     print("SERVER: In threaded_client thread")
-    # conn.send(str.encode(str(p)))
-    # conn.send(str(p).encode())
     while True:
         reply = ""
         try:
@@ -53,46 +55,41 @@ def threaded_client(conn, p, map):
                 # do the tile checking
                 elif data == 'get':
                     print("data: client getting info from server")
-                    reply = "dataFromServer"
+                    print('Server generated board:')
+                    reply = board
                     # pass
 
                 elif data == 'playerOn':
                     print("data: new player has joined.")
                     reply = "newGameFromServer"
                     print("playerCount: ", playerCount)
-                    # if playerCount >= 1:
-                    #     print(" ++++++++++++ TEST")
                     if playerCount > 4:
                         reply = "GameFull"
                         print("-----------   Game is full")
-                        # playerCount = playerCount - 1 #Error: breaks the game/connection on client side
-                        # playerCount = 4
-                conn.sendall(reply.encode())
+                conn.sendall(pickle.dumps(reply))
 
         except:
             break
 
     print("conn.close()")
-    # idCount -= 1
     conn.close()
 
 
 while True:
     conn, addr = s.accept()
 
-    tileMap = 0  # placeholder for tile map
-
     '''START PHASE'''
     # Server begins to start the game
     if gameStart is True:
-        pass
+        if playerCount < 2:
+            gameStart = False
 
     '''READY PHASE'''
     # gameOn is True when at least one player is connected (initiated the map)
     if gameOn is False:
         print("Starting new game...\nGenerating new map...")
-        #   TODO: Generate Map
-
+        board = Board(util.TILEWIDTH, util.TILEHEIGHT)
+        board.initialize_board()
         playerCount += 1
         gameOn = True  # When the first player 'starts' the game, other players just need to join (map generates once)
 
@@ -105,7 +102,7 @@ while True:
     conn.send(reply.encode())
     print("Connected to: ", addr)
 
-    start_new_thread(threaded_client, (conn, playerCount, tileMap))  # playerCount can act as playerNumber
+    start_new_thread(threaded_client, (conn, playerCount))  # playerCount can act as playerNumber
 
     if playerCount > 4:
         playerCount -= 1
