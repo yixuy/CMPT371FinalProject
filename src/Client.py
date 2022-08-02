@@ -17,18 +17,17 @@ pygame.display.set_caption("Client")
         '''
 
 
-def main(network):
+def main(network, p):
     run = True
     clock = pygame.time.Clock()
     n = network
-    player = int(n.get_p())
+    player = p
     print("You are Player", player)
 
     while run:
         clock.tick(60)  # Runs the game in 60fps
         try:
             # Get data from the server in 60fps (to update own board)
-            print("break1")
             game = n.send("get")
             print("game: ", game.print_board())
             # run = False
@@ -47,6 +46,7 @@ def main(network):
 
 
 def menu_screen():
+    playerNum = 0
     run = True
     clock = pygame.time.Clock()
     n = Network()
@@ -78,16 +78,17 @@ def menu_screen():
                     n.disconnect()
                     pygame.quit()
                     run = False
+                else:
+                    playerNum = new_game
 
+                # UI
                 win.fill((200, 200, 128))
                 font = pygame.font.SysFont("comicsans", 60)
                 text = font.render("Player READY", True, (255, 0, 0))
                 win.blit(text, (100, 200))
                 pygame.display.update()
 
-    # win = pygame.display.set_mode((width, height))
-
-    main(n)
+    main(n, playerNum)
 
 
 while True:

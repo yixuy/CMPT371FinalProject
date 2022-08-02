@@ -6,12 +6,14 @@ from GameLogic.Board import Board
 import GameLogic.util as util
 # global playerCount  # or change to rdy count
 
+server = 'localhost'
+port = 50000
+
 playerCount = 0
 gameOn = False
 gameStart = False
-server = 'localhost'
-port = 50000
 board = None
+
 
 s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
@@ -39,6 +41,7 @@ Server:
 
 def threaded_client(conn, p):
     print("SERVER: In threaded_client thread")
+
     while True:
         reply = ""
         try:
@@ -61,11 +64,12 @@ def threaded_client(conn, p):
 
                 elif data == 'playerOn':
                     print("data: new player has joined.")
-                    reply = "newGameFromServer"
+                    reply = p
                     print("playerCount: ", playerCount)
                     if playerCount > 4:
                         reply = "GameFull"
                         print("-----------   Game is full")
+
                 conn.sendall(pickle.dumps(reply))
 
         except:
@@ -83,6 +87,8 @@ while True:
     if gameStart is True:
         if playerCount < 2:
             gameStart = False
+    else:
+        pConnFlag = 1
 
     '''READY PHASE'''
     # gameOn is True when at least one player is connected (initiated the map)
