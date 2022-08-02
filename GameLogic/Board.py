@@ -65,7 +65,7 @@ class Board:
     def get_item(self, x, y):
         return self.board[x][y];
 
-    def initializeBoard(self):
+    def initialize_board(self):
         self.board = [[0 for i in range(self.columns)] for j in range(self.rows)]
         n_walls = int(self.columns * self.rows * 0.3)
         for i in range(n_walls):
