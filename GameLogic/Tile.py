@@ -1,24 +1,23 @@
-from util import COLOURS, TILESIZE
 class Tile:
     def __init__(self):
         self.x = 0
         self.y = 0
         self.colour = None
 
-    def getX(self):
+    def get_x(self):
         return self.x
 
-    def setX(self, x):
+    def set_x(self, x):
         self.x = x
 
-    def getY(self):
+    def get_y(self):
         return self.y
 
-    def setY(self, y):
+    def set_y(self, y):
         self.y = y
 
-    def getColour(self):
+    def get_colour(self):
         return self.colour
 
-    def setColour(self, colour):
+    def set_colour(self, colour):
         self.colour = colour
