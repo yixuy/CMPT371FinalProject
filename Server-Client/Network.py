@@ -1,5 +1,4 @@
 import socket
-import pickle
 
 
 class Network:
@@ -10,7 +9,7 @@ class Network:
         self.addr = (self.server, self.port)
         # self.p = self.connect()
 
-    def getP(self):
+    def get_p(self):
         return 12
         # return self.p
 

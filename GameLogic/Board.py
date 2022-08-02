@@ -59,11 +59,11 @@ class Board:
         self.board[y_coord+1][x_coord+1] = 0
 
 
-    def getBoard(self):
-        return  self.board;
+    def get_board(self):
+        return self.board;
 
-    def getItem(self, x, y):
-        return  self.board[x][y];
+    def get_item(self, x, y):
+        return self.board[x][y];
 
     def initializeBoard(self):
         self.board = [[0 for i in range(self.columns)] for j in range(self.rows)]
@@ -89,5 +89,5 @@ class Board:
             print()
 
 
-    def printBoard(self):
+    def print_board(self):
         print('\n'.join(' '.join('{0: ^3}'.format(str(i)) for i in row) for row in self.board))

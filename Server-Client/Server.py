@@ -1,7 +1,5 @@
-from concurrent.futures import thread
 import socket
 from _thread import *
-import pickle
 
 # global playerCount  # or change to rdy count
 
