@@ -30,7 +30,7 @@ def main(network):
             # Get data from the server in 60fps (to update own board)
             print("break1")
             game = n.send("get")
-            print("game: ", game)
+            print("game: ", game.print_board())
             # run = False
         except:
             run = False

@@ -1,7 +1,5 @@
 import pygame as pg
-from util import *
-
-
+from .util import *
 # Reference: https://www.youtube.com/watch?v=3UxnelT9aCo
 class Wall(pg.sprite.Sprite):
     def __init__(self, game, x, y):
