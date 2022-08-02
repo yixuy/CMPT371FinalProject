@@ -7,16 +7,16 @@ class Board:
         self.rows = rows
         self.board = []
 
-    def getcolumns(self):
+    def get_columns(self):
         return self.columns
 
-    def setcolumns(self, columns):
+    def set_columns(self, columns):
         self.columns = columns
 
-    def getrows(self):
+    def get_rows(self):
         return self.rows
 
-    def setrows(self, rows):
+    def set_rows(self, rows):
         self.rows = rows
 
     # Cell Type 0: 1x1 cell
@@ -82,11 +82,6 @@ class Board:
                     self.setCellType2(random_X,random_Y)
                 else:
                     self.board[random_Y][random_X] = 0
-            print("Cell type is:" + str(cellType))
-            print("random_Y is:" + str(random_Y))
-            print("random_X is:" + str(random_X))
-            self.printBoard()
-            print()
 
 
     def print_board(self):
