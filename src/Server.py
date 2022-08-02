@@ -2,7 +2,7 @@ from concurrent.futures import thread
 import socket
 from _thread import *
 import pickle
-from GameLogic.Game import Game
+from GameLogic.Board import Board
 # global playerCount  # or change to rdy count
 
 playerCount = 0
@@ -22,12 +22,12 @@ except socket.error as e:
 # before refusing outside connections.
 s.listen(1)  # might need to increase (?)
 print("Waiting for a connection, Server Started")
-g = Game()
+# g = Game()
 # g.show_start_screen()
-while True:
-    g.game_screen()
-    g.start_game()
-    # g.show_go_screen()
+# while True:
+#     g.game_screen()
+#     g.start_game()
+#     # g.show_go_screen()
 
 '''
 Server:
@@ -61,21 +61,29 @@ def threaded_client(conn, p, map):
                 # do the tile checking
                 elif data == 'get':
                     print("data: client getting info from server")
-                    reply = "dataFromServer"
+                    board = Board(16, 16)
+                    board.initializeBoard()
+                    print('Server generated board:')
+                    board.printBoard()
+                    pickled_board = pickle.dumps(board)
+                    # unpickled_board = pickle.loads(pickled_board)
+                    print('pickled:', pickled_board)
+                    # print('unpickled:', unpickled_board)
+                    reply = pickled_board
                     # pass
 
                 elif data == 'playerOn':
                     print("data: new player has joined.")
-                    reply = "newGameFromServer"
+                    reply = pickle.dumps("newGameFromServer")
                     print("playerCount: ", playerCount)
                     # if playerCount >= 1:
                     #     print(" ++++++++++++ TEST")
                     if playerCount > 4:
-                        reply = "GameFull"
+                        reply = pickle.dumps("GameFull")
                         print("-----------   Game is full")
                         # playerCount = playerCount - 1 #Error: breaks the game/connection on client side
                         # playerCount = 4
-                conn.sendall(reply.encode())
+                conn.sendall(reply)
 
         except:
             break

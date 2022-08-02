@@ -33,10 +33,10 @@ class Board:
         self.board[y_coord-1][x_coord+1] = 0
 
     def getBoard(self):
-        return  self.board;
+        return  self.board
 
     def getItem(self, x, y):
-        return  self.board[x][y];
+        return  self.board[x][y]
 
     def initializeBoard(self):
         self.board = [[0 for i in range(self.height)] for j in range(self.width)]
