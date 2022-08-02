@@ -23,14 +23,7 @@ class Board:
     # Cell Type 1: 1x2 cell
     # Cell Type 2: 2x1 cell
 
-
-    def getBoard(self):
-        return  self.board
-
-    def getItem(self, x, y):
-        return  self.board[x][y]
-
-    def setCellType0(self, x_coord, y_coord):
+    def set_cell_type0(self, x_coord, y_coord):
         self.board[y_coord+1][x_coord] = 0
         self.board[y_coord][x_coord+1] = 0
         self.board[y_coord-1][x_coord] = 0
@@ -40,7 +33,7 @@ class Board:
         self.board[y_coord+1][x_coord-1] = 0
         self.board[y_coord-1][x_coord+1] = 0
 
-    def setCellType1(self, x_coord, y_coord):
+    def set_cell_type1(self, x_coord, y_coord):
         self.board[y_coord+1][x_coord] = -1
         self.board[y_coord+1][x_coord+1] = 0
         self.board[y_coord+1][x_coord-1] = 0
@@ -53,7 +46,7 @@ class Board:
         self.board[y_coord+2][x_coord-1] = 0
         self.board[y_coord-1][x_coord+1] = 0
 
-    def setCellType2(self, x_coord, y_coord):
+    def set_cell_type2(self, x_coord, y_coord):
         self.board[y_coord][x_coord + 1] = -1
         self.board[y_coord+1][x_coord] = 0
         self.board[y_coord][x_coord+2] = 0
@@ -65,7 +58,6 @@ class Board:
         self.board[y_coord-1][x_coord+2] = 0
         self.board[y_coord-1][x_coord+1] = 0
         self.board[y_coord+1][x_coord+1] = 0
-
 
     def get_board(self):
         return self.board
@@ -83,14 +75,13 @@ class Board:
             if(random_Y != 0 and random_X != 0 and random_Y != self.rows-1 and random_X != self.columns-1):
                 self.board[random_Y][random_X] = -1
                 if(cellType == 0):
-                    self.setCellType0(random_X, random_Y)
+                    self.set_cell_type0(random_X, random_Y)
                 elif(cellType == 1 and random_Y < self.rows-2):
-                    self.setCellType1(random_X,random_Y)
+                    self.set_cell_type1(random_X,random_Y)
                 elif(cellType == 2 and random_X < self.columns-2):
-                    self.setCellType2(random_X,random_Y)
+                    self.set_cell_type2(random_X,random_Y)
                 else:
                     self.board[random_Y][random_X] = 0
-
 
     def print_board(self):
         print('\n'.join(' '.join('{0: ^3}'.format(str(i)) for i in row) for row in self.board))
