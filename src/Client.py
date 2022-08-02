@@ -15,11 +15,13 @@ pygame.display.set_caption("Client")
             it passed the tile checking
         - If client passed the tile checking, client will update its own board (by setting the tile colour)
         '''
+
+
 def main(network):
     run = True
     clock = pygame.time.Clock()
     n = network
-    player = int(n.getP())
+    player = int(n.get_p())
     print("You are Player", player)
 
     while run:
@@ -28,7 +30,7 @@ def main(network):
             # Get data from the server in 60fps (to update own board)
             print("break1")
             game = n.send("get")
-            print("game: ", game.printBoard())
+            print("game: ", game.print_board())
             # run = False
         except:
             run = False
@@ -84,8 +86,6 @@ def menu_screen():
                 pygame.display.update()
 
     # win = pygame.display.set_mode((width, height))
-
-
 
     main(n)
 
