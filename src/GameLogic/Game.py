@@ -1,9 +1,8 @@
 import pygame as pg
 import sys
-from .Wall import *
 from .Player import *
-from .Util import *
-from .Board import * 
+from .Board import *
+from .Tile import *
 # Reference: https://www.youtube.com/watch?v=3UxnelT9aCo
 class Game():
     def __init__(self, board_obj):
