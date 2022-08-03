@@ -1,8 +1,9 @@
 import pygame as pg
 import sys
-from Player import *
-from Board import *
-from Tile import *
+from .Wall import *
+from .Player import *
+from .Util import *
+from .Board import * 
 # Reference: https://www.youtube.com/watch?v=3UxnelT9aCo
 class Game():
     def __init__(self, board_obj):
@@ -98,6 +99,6 @@ board_test = Board(int(TILEWIDTH), int(TILEHEIGHT))
 board_test.initialize_board()
 g = Game(board_test)
 
-while True:
-    g.game_screen()
-    g.start_game()
+# while True:
+#     g.game_screen()
+#     g.start_game()

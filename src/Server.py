@@ -3,15 +3,18 @@ import socket
 from _thread import *
 import pickle
 from GameLogic.Board import Board
-import GameLogic.util as util
-# global playerCount  # or change to rdy count
+import GameLogic.Util as Util
+from NetworkUtils import *
+
+
+server = IPADDRESS
+port = PORTNUMBER
 
 playerCount = 0
 gameOn = False
 gameStart = False
-server = 'localhost'
-port = 50000
 board = None
+
 
 s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
@@ -39,33 +42,45 @@ Server:
 
 def threaded_client(conn, p):
     print("SERVER: In threaded_client thread")
+
     while True:
         reply = ""
         try:
             data = conn.recv(4096).decode()
-            # print("data: ", data)
             if not data:
                 break
             else:
                 # reset the game
-                if data == "reset":
+                if data == GAME_RESET:
                     print("data: 'reset' ")
-                    # playerCount = 0
-                    # pass
+
                 # do the tile checking
-                elif data == 'get':
+                elif data == GET_BOARD:
                     print("data: client getting info from server")
                     print('Server generated board:')
                     reply = board
-                    # pass
 
-                elif data == 'playerOn':
+                elif data == GAME_PREPSTART:
+                    print("Server: Preparing to start the game.")
+                    # TODO: check if game can actually start, it should broadcast to all clients at the same time
+                    # reply = GAME_START
+                    if playerCount >= 2:
+                        reply = GAME_START
+                    else:
+                        reply = 'Game requires minimum of 2 players.'
+
+                elif data == GAME_PLAY:
+                    # normal game info passing
+                    pass
+
+                elif data == PLAYER_JOIN:
                     print("data: new player has joined.")
-                    reply = "newGameFromServer"
+                    reply = p
                     print("playerCount: ", playerCount)
                     if playerCount > 4:
                         reply = "GameFull"
                         print("-----------   Game is full")
+
                 conn.sendall(pickle.dumps(reply))
 
         except:
@@ -88,7 +103,7 @@ while True:
     # gameOn is True when at least one player is connected (initiated the map)
     if gameOn is False:
         print("Starting new game...\nGenerating new map...")
-        board = Board(util.TILEWIDTH, util.TILEHEIGHT)
+        board = Board(Util.TILEWIDTH, Util.TILEHEIGHT)
         board.initialize_board()
         playerCount += 1
         gameOn = True  # When the first player 'starts' the game, other players just need to join (map generates once)
