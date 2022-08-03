@@ -1,4 +1,5 @@
 import pygame
+
 from Network import Network
 
 pygame.font.init()
@@ -8,13 +9,13 @@ height = 700
 win = pygame.display.set_mode((width, height))
 pygame.display.set_caption("Client")
 
-'''Client's Game Implementation:
+"""Client's Game Implementation:
         - Onces client ready, waits for Server to signal that game is starting
         - Every 30fps, client will send Server its current coords
         - Server will process that coords and send client back the 'updated' tiles if 
             it passed the tile checking
         - If client passed the tile checking, client will update its own board (by setting the tile colour)
-        '''
+        """
 
 
 def main(network):
