@@ -4,7 +4,8 @@ from _thread import *
 import pickle
 from GameLogic.Board import Board
 import GameLogic.util as util
-# global playerCount  # or change to rdy count
+from NetworkUtils import *
+
 
 server = 'localhost'
 port = 50000
@@ -51,18 +52,21 @@ def threaded_client(conn, p):
                 break
             else:
                 # reset the game
-                if data == "reset":
+                if data == GAME_RESET:
                     print("data: 'reset' ")
                     # playerCount = 0
                     # pass
                 # do the tile checking
-                elif data == 'get':
+                elif data == GET_BOARD:
                     print("data: client getting info from server")
-                    print('Server generated board:')
                     reply = board
                     # pass
 
-                elif data == 'playerOn':
+                elif data == GAME_PLAY:
+                    # normal game info passing
+                    pass
+
+                elif data == PLAYER_JOIN:
                     print("data: new player has joined.")
                     reply = p
                     print("playerCount: ", playerCount)

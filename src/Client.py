@@ -1,5 +1,8 @@
 import pygame
 from Network import Network
+from NetworkUtils import *
+# gameRdy = False
+# gameStart = False
 
 pygame.font.init()
 
@@ -23,14 +26,28 @@ def main(network, p):
     n = network
     player = p
     print("You are Player", player)
+    gameRdy = True
+    gameStart = False
 
     while run:
         clock.tick(60)  # Runs the game in 60fps
         try:
+            '''READY PHASE (for client)'''
             # Get data from the server in 60fps (to update own board)
-            game = n.send("get")
-            print("game: ", game.print_board())
-            # run = False
+            if gameRdy is True:
+                # Get the board once from the server
+                game = n.send(GET_BOARD)
+                # TODO: Generate the Game object with the game map
+                if game is not None:
+                    gameRdy = False
+                    gameStart = True
+
+            '''START PHASE (for client)'''
+            # Actual Gameplay Logic
+            if gameStart is True:
+                # play the game like normal
+                game = n.send(GAME_PLAY)
+
         except:
             run = False
             print("Couldn't get game")
@@ -70,7 +87,7 @@ def menu_screen():
                 run = False
                 p1 = n.connect()
                 print("p1: ", p1)
-                new_game = n.send("playerOn")
+                new_game = n.send(PLAYER_JOIN)
                 # new_game = n.recv()
                 print("new game received: ", new_game)
                 if new_game == "GameFull":
