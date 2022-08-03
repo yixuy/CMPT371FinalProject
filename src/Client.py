@@ -1,14 +1,14 @@
+from GameLogic.Util import WIDTH, HEIGHT
 import pygame
 from Network import Network
 from NetworkUtils import *
 # gameRdy = False
 # gameStart = False
 
+from GameLogic.Game import Game
 pygame.font.init()
 
-width = 700
-height = 700
-win = pygame.display.set_mode((width, height))
+win = pygame.display.set_mode((WIDTH, HEIGHT))
 pygame.display.set_caption("Client")
 
 '''Client's Game Implementation:
