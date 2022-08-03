@@ -1,4 +1,4 @@
-from util import *
+from .Util import *
 import pygame as pg
 # Reference: https://www.youtube.com/watch?v=3UxnelT9aCo
 class Tile(pg.sprite.Sprite):
