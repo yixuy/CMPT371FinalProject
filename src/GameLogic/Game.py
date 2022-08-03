@@ -2,7 +2,7 @@ import pygame as pg
 import sys
 from .Wall import *
 from .Player import *
-from .util import *
+from .Util import *
 from .Board import * 
 # Reference: https://www.youtube.com/watch?v=3UxnelT9aCo
 class Game():
@@ -76,8 +76,9 @@ class Game():
 board = Board(int(TILEWIDTH), int(TILEHEIGHT))
 board.initialize_board()
 board = board.get_board()
-g = Game(board)
+print(board)
+# g = Game(board)
 
-while True:
-    g.game_screen()
-    g.start_game()
+# while True:
+#     g.game_screen()
+#     g.start_game()

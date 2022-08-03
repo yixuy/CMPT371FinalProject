@@ -3,13 +3,11 @@ import socket
 from _thread import *
 import pickle
 from GameLogic.Board import Board
-import GameLogic.util as util
-# global playerCount  # or change to rdy count
-
+import GameLogic.Util as Util
 playerCount = 0
 gameOn = False
 gameStart = False
-server = 'localhost'
+server = '209.87.56.53'
 port = 50000
 board = None
 
@@ -43,21 +41,18 @@ def threaded_client(conn, p):
         reply = ""
         try:
             data = conn.recv(4096).decode()
-            # print("data: ", data)
             if not data:
                 break
             else:
                 # reset the game
                 if data == "reset":
                     print("data: 'reset' ")
-                    # playerCount = 0
-                    # pass
+                
                 # do the tile checking
                 elif data == 'get':
                     print("data: client getting info from server")
                     print('Server generated board:')
                     reply = board
-                    # pass
 
                 elif data == 'playerOn':
                     print("data: new player has joined.")
@@ -88,7 +83,7 @@ while True:
     # gameOn is True when at least one player is connected (initiated the map)
     if gameOn is False:
         print("Starting new game...\nGenerating new map...")
-        board = Board(util.TILEWIDTH, util.TILEHEIGHT)
+        board = Board(Util.TILEWIDTH, Util.TILEHEIGHT)
         board.initialize_board()
         playerCount += 1
         gameOn = True  # When the first player 'starts' the game, other players just need to join (map generates once)

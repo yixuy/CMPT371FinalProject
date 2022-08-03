@@ -1,11 +1,13 @@
 import socket
 import pickle
 
+from GameLogic.Util import IPADDRESS, PORTNUMBER
+
 class Network:
     def __init__(self):
         self.client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        self.server = 'localhost'
-        self.port = 50000
+        self.server = IPADDRESS
+        self.port = PORTNUMBER
         self.addr = (self.server, self.port)
         # self.p = self.connect()
 

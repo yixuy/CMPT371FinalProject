@@ -1,11 +1,10 @@
+from GameLogic.Util import WIDTH, HEIGHT
 import pygame
 from Network import Network
-
+from GameLogic.Game import Game
 pygame.font.init()
 
-width = 700
-height = 700
-win = pygame.display.set_mode((width, height))
+win = pygame.display.set_mode((WIDTH, HEIGHT))
 pygame.display.set_caption("Client")
 
 '''Client's Game Implementation:
@@ -28,9 +27,13 @@ def main(network):
         clock.tick(60)  # Runs the game in 60fps
         try:
             # Get data from the server in 60fps (to update own board)
-            print("break1")
-            game = n.send("get")
-            print("game: ", game.print_board())
+        
+            board = n.send("get")
+            g = Game(board.get_board())
+            g.game_screen()
+            g.start_game()
+            # pygame.display.update()
+            # print("game: ", board)
             # run = False
         except:
             run = False
@@ -84,9 +87,6 @@ def menu_screen():
                 text = font.render("Player READY", True, (255, 0, 0))
                 win.blit(text, (100, 200))
                 pygame.display.update()
-
-    # win = pygame.display.set_mode((width, height))
-
     main(n)
 
 
