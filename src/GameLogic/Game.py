@@ -1,29 +1,33 @@
 import pygame as pg
 import sys
-from .Wall import *
-from .Player import *
-from .util import *
-from .Board import * 
+from Player import *
+from Board import *
+from Tile import *
 # Reference: https://www.youtube.com/watch?v=3UxnelT9aCo
 class Game():
-    def __init__(self, board):
+    def __init__(self, board_obj):
         pg.init()
         self.screen = pg.display.set_mode((WIDTH, HEIGHT))
         pg.display.set_caption(TITLE)
         self.clock = pg.time.Clock()
-        self.board = board
+        self.board = board_obj.get_board()
+        self.board_obj = board_obj
+        self.grid = [[0 for i in range(TILEWIDTH)] for j in range(TILEHEIGHT)]
         pg.key.set_repeat(500, 100)
 
     def game_screen(self):
         self.all_sprites = pg.sprite.Group()
-        self.walls = pg.sprite.Group()
-        self.player = Player(self, 0, 0, COLOURS[1])
 
         # draw the wall
         for row in range(0, int(TILEWIDTH)):
             for col in range(0, int(TILEHEIGHT)):
                 if (self.board[row][col] == -1):
-                    Wall(self, row, col)
+                    tile = Tile(self, row, col, -1)
+                    self.grid[row][col] = tile
+                else:
+                    tile = Tile(self, row, col, 0)
+                    self.grid[row][col] = tile
+        self.player = Player(self, 0, 0, 1)
 
     def start_game(self):
         while True:
@@ -46,10 +50,15 @@ class Game():
             pg.draw.line(self.screen, LIGHTGREY, (0, y), (WIDTH, y))
 
     def draw(self):
-        self.screen.fill(COLOURS[0])
         self.draw_grid()
         self.all_sprites.draw(self.screen)
         pg.display.flip()
+
+
+    def update_tile(self, x, y, colour_index):
+        tile = self.grid[x][y]
+        tile.set_colour(colour_index)
+
 
     def input_dir(self):
         for event in pg.event.get():
@@ -58,25 +67,36 @@ class Game():
             if event.type == pg.KEYDOWN:
                 curr_x = self.player.get_x()
                 curr_y = self.player.get_y()
+                colour_index = self.player.get_colour_index()
                 if event.key == pg.K_ESCAPE:
                     self.quit()
                 if event.key == pg.K_LEFT:
                     if self.board[curr_x - 1][curr_y] != -1:
                         self.player.move(dx=-1)
+                        self.board_obj.change_tile(curr_x,curr_y,colour_index)
+                        self.update_tile(curr_x,curr_y,colour_index)
                 if event.key == pg.K_RIGHT:
                     if curr_x + 1 < TILEWIDTH and self.board[curr_x + 1][curr_y] != -1:
                         self.player.move(dx=1)
+                        self.board_obj.change_tile(curr_x,curr_y,colour_index)
+                        self.update_tile(curr_x, curr_y, colour_index)
                 if event.key == pg.K_UP:
                     if self.board[curr_x][curr_y - 1] != -1:
                         self.player.move(dy=-1)
+                        self.board_obj.change_tile(curr_x,curr_y,colour_index)
+                        self.update_tile(curr_x, curr_y, colour_index)
                 if event.key == pg.K_DOWN:
                     if curr_y + 1 < TILEHEIGHT and self.board[curr_x][curr_y + 1] != -1:
                         self.player.move(dy=1)
+                        self.board_obj.change_tile(curr_x,curr_y,colour_index)
+                        self.update_tile(curr_x, curr_y, colour_index)
 
-board = Board(int(TILEWIDTH), int(TILEHEIGHT))
-board.initialize_board()
-board = board.get_board()
-g = Game(board)
+
+
+
+board_test = Board(int(TILEWIDTH), int(TILEHEIGHT))
+board_test.initialize_board()
+g = Game(board_test)
 
 while True:
     g.game_screen()
