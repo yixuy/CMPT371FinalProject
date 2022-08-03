@@ -27,7 +27,7 @@ class Game():
 
     def start_game(self):
         while True:
-            self.dt = self.clock.tick(FPS) / 1000
+            self.dt = self.clock.tick(FPS) / 10
             self.input_dir()
             self.update()
             self.draw()
@@ -51,7 +51,7 @@ class Game():
         self.all_sprites.draw(self.screen)
         pg.display.flip()
 
-    def input_dir(self):
+    def input_dir(self, network):
         for event in pg.event.get():
             if event.type == pg.QUIT:
                 self.quit()
@@ -62,23 +62,18 @@ class Game():
                     self.quit()
                 if event.key == pg.K_LEFT:
                     if self.board[curr_x - 1][curr_y] != -1:
-                        self.player.move(dx=-1)
+                        # self.player.move(dx=-1)
+                        network.send("left")
                 if event.key == pg.K_RIGHT:
                     if curr_x + 1 < TILEWIDTH and self.board[curr_x + 1][curr_y] != -1:
-                        self.player.move(dx=1)
+                        # self.player.move(dx=1)
+                        network.send("right")
                 if event.key == pg.K_UP:
                     if self.board[curr_x][curr_y - 1] != -1:
-                        self.player.move(dy=-1)
+                        # self.player.move(dy=-1)
+                        network.send("up")
                 if event.key == pg.K_DOWN:
                     if curr_y + 1 < TILEHEIGHT and self.board[curr_x][curr_y + 1] != -1:
-                        self.player.move(dy=1)
-
-board = Board(int(TILEWIDTH), int(TILEHEIGHT))
-board.initialize_board()
-board = board.get_board()
-print(board)
-# g = Game(board)
-
-# while True:
-#     g.game_screen()
-#     g.start_game()
+                        # self.player.move(dy=1)
+                        network.send("down")
+        

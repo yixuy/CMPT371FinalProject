@@ -3,7 +3,6 @@ import pygame
 from Network import Network
 from GameLogic.Game import Game
 pygame.font.init()
-
 win = pygame.display.set_mode((WIDTH, HEIGHT))
 pygame.display.set_caption("Client")
 
@@ -26,15 +25,16 @@ def main(network):
     while run:
         clock.tick(60)  # Runs the game in 60fps
         try:
-            # Get data from the server in 60fps (to update own board)
-        
+            # Get data from the server in 60fps (to update own board) 
             board = n.send("get")
             g = Game(board.get_board())
             g.game_screen()
-            g.start_game()
-            # pygame.display.update()
-            # print("game: ", board)
-            # run = False
+            while True:
+                g.input_dir(n)
+                g.update()
+                g.draw()
+            
+        
         except:
             run = False
             print("Couldn't get game")

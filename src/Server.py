@@ -7,14 +7,13 @@ import GameLogic.Util as Util
 playerCount = 0
 gameOn = False
 gameStart = False
-server = '209.87.56.53'
-port = 50000
+from GameLogic.Util import IPADDRESS, PORTNUMBER
 board = None
 
 s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
 try:
-    s.bind((server, port))
+    s.bind((IPADDRESS, PORTNUMBER))
 except socket.error as e:
     str(e)
 
@@ -41,6 +40,7 @@ def threaded_client(conn, p):
         reply = ""
         try:
             data = conn.recv(4096).decode()
+            print(data)
             if not data:
                 break
             else:
