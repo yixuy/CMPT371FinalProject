@@ -7,15 +7,13 @@ import GameLogic.Util as Util
 from NetworkUtils import *
 
 
-server = '209.87.56.53'
-port = 50000
+server = IPADDRESS
+port = PORTNUMBER
 
 playerCount = 0
 gameOn = False
 gameStart = False
 board = None
-
-
 
 
 s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -61,6 +59,15 @@ def threaded_client(conn, p):
                     print("data: client getting info from server")
                     print('Server generated board:')
                     reply = board
+
+                elif data == GAME_PREPSTART:
+                    print("Server: Preparing to start the game.")
+                    # TODO: check if game can actually start, it should broadcast to all clients at the same time
+                    # reply = GAME_START
+                    if playerCount >= 2:
+                        reply = GAME_START
+                    else:
+                        reply = 'Game requires minimum of 2 players.'
 
                 elif data == GAME_PLAY:
                     # normal game info passing
