@@ -1,5 +1,6 @@
 from time import sleep
-from .Util import TILESIZE, TILEWIDTH
+from .Util import TILESIZE, TILEWIDTH, COLOURS
+
 import pygame as pg
 # https://www.youtube.com/watch?v=3UxnelT9aCo
 class Player(pg.sprite.Sprite):
