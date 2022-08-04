@@ -1,10 +1,13 @@
 import pickle
+from re import T
 import socket
 from _thread import *
 import pickle
+import time
 from GameLogic.Board import Board
 import GameLogic.Util as Util
 from NetworkUtils import *
+from threading import Timer
 
 
 server = IPADDRESS
@@ -14,8 +17,10 @@ player_count = 0
 players_ready = False
 game_running = False
 board = None
-game_timer = 0
-TOTAL_GAME_TIME_IN_SECONDS = 30
+
+timer_running = False
+TOTAL_GAME_TIME_IN_MINUTES = 30 / 60
+timer = Timer(TOTAL_GAME_TIME_IN_MINUTES, print("Holay!"))
 
 
 s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -92,17 +97,46 @@ def threaded_client(conn, p):
     conn.close()
 
 
+def reset_timer():
+    timer_running = False
+    if timer.is_alive():
+        timer.cancel()
+
+
+def start_timer():
+    timer_running = True
+
+    def display(msg):
+        print(msg + " " + time.strftime("%H:%M:%S"))
+
+    class RepeatTimer(Timer):
+        def run(self):
+            while not self.finished.wait(self.interval):
+                self.function(*self.args, **self.kwargs)
+                print(" ")
+
+    ##We are now creating a thread timer and controling it
+    timer = RepeatTimer(1, display, ["Repeating"])
+    timer.start()  # recalling run
+    print("Threading started")
+    time.sleep(10)  # It gets suspended for the given number of seconds
+    print("Threading finishing")
+    timer.cancel()
+
+
 while True:
     conn, addr = s.accept()
 
     """START PHASE"""
     # Server begins the game
     if game_running is True:
+        if not timer_running:
+            start_timer()
         if player_count < 2:
             game_running = False
-            timer = TOTAL_GAME_TIME_IN_SECONDS
+            reset_timer()  # reset the timer
     else:  # Game is not running as the flag is false; reset the timer
-        timer = TOTAL_GAME_TIME_IN_SECONDS
+        reset_timer()
 
     """READY PHASE"""
     # player_ready is True when at least one player is connected (initiated the map)
@@ -110,6 +144,7 @@ while True:
         print("Starting new game...\nGenerating new map...")
         board = Board(Util.TILEWIDTH, Util.TILEHEIGHT)
         board.initialize_board()
+        reset_timer()
         player_count += 1
         # When the first player 'starts' the game, other players just need to join (map generates once)
         players_ready = True

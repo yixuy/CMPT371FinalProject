@@ -3,9 +3,10 @@ import sys
 from .Wall import *
 from .Player import *
 from .Util import *
-from .Board import * 
+from .Board import *
+
 # Reference: https://www.youtube.com/watch?v=3UxnelT9aCo
-class Game():
+class Game:
     def __init__(self, board):
         pg.init()
         self.screen = pg.display.set_mode((WIDTH, HEIGHT))
@@ -22,7 +23,7 @@ class Game():
         # draw the wall
         for row in range(0, int(TILEWIDTH)):
             for col in range(0, int(TILEHEIGHT)):
-                if (self.board[row][col] == -1):
+                if self.board[row][col] == -1:
                     Wall(self, row, col)
 
     def start_game(self):
@@ -72,6 +73,7 @@ class Game():
                 if event.key == pg.K_DOWN:
                     if curr_y + 1 < TILEHEIGHT and self.board[curr_x][curr_y + 1] != -1:
                         self.player.move(dy=1)
+
 
 board = Board(int(TILEWIDTH), int(TILEHEIGHT))
 board.initialize_board()
