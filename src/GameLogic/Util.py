@@ -1,6 +1,3 @@
-from tkinter import LEFT
-
-
 COLOURS = {
     # WHITE
     0:(255, 255, 255),
