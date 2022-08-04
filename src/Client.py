@@ -60,7 +60,7 @@ def main(network, p):
                             print("GAME CAN START...")
                             g.game_screen()
                             while True:
-                                g.input_dir(n)
+                                g.input_dir(network, player)
                                 g.update()
                                 g.draw()
                             gameStart = True
@@ -81,17 +81,6 @@ def main(network, p):
             if event.type == pygame.QUIT:
                 run = False
                 pygame.quit()
-            # if other types of event (movements...)
-            # if event.type == pygame.MOUSEBUTTONDOWN:
-            #     isGameStart = n.send(GAME_PREPSTART)
-            #     if isGameStart == GAME_START:
-            #         print("GAME CAN START...")
-            #         g.game_screen()
-            #         g.start_game()
-            #         gameStart = True
-            #         gameRdy = False
-
-        # run = False
 
 
 def menu_screen():

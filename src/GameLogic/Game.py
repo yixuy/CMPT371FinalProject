@@ -1,3 +1,4 @@
+from NetworkUtils import GAME_PLAY
 import pygame as pg
 import sys
 from .Wall import *
@@ -51,7 +52,9 @@ class Game():
         self.all_sprites.draw(self.screen)
         pg.display.flip()
 
-    def input_dir(self, network):
+    def input_dir(self, network, player):
+        print(player)
+        msg = GAME_PLAY + ";" + str(player) + ";"
         for event in pg.event.get():
             if event.type == pg.QUIT:
                 self.quit()
@@ -63,17 +66,21 @@ class Game():
                 if event.key == pg.K_LEFT:
                     if self.board[curr_x - 1][curr_y] != -1:
                         # self.player.move(dx=-1)
-                        network.send("left")
+                        msg = msg + "left"
+                        network.send(msg)
                 if event.key == pg.K_RIGHT:
                     if curr_x + 1 < TILEWIDTH and self.board[curr_x + 1][curr_y] != -1:
                         # self.player.move(dx=1)
-                        network.send("right")
+                        msg = msg + "right"
+                        network.send(msg)
                 if event.key == pg.K_UP:
                     if self.board[curr_x][curr_y - 1] != -1:
                         # self.player.move(dy=-1)
-                        network.send("up")
+                        msg = msg + "up"
+                        network.send(msg)
                 if event.key == pg.K_DOWN:
                     if curr_y + 1 < TILEHEIGHT and self.board[curr_x][curr_y + 1] != -1:
                         # self.player.move(dy=1)
-                        network.send("down")
+                        msg = msg + "down"
+                        network.send(msg)
         
