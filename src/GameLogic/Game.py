@@ -63,24 +63,28 @@ class Game():
                 curr_y = self.player.get_y()
                 if event.key == pg.K_ESCAPE:
                     self.quit()
-                if event.key == pg.K_LEFT:
-                    if self.board[curr_x - 1][curr_y] != -1:
-                        # self.player.move(dx=-1)
+                elif event.key == pg.K_LEFT:
+                    if curr_x >= 1 and self.board[curr_x - 1][curr_y] != -1:
+                        self.player.move(dx=-1)
                         msg = msg + "left"
                         network.send(msg)
-                if event.key == pg.K_RIGHT:
+                        return
+                elif event.key == pg.K_RIGHT:
                     if curr_x + 1 < TILEWIDTH and self.board[curr_x + 1][curr_y] != -1:
-                        # self.player.move(dx=1)
+                        self.player.move(dx=1)
                         msg = msg + "right"
                         network.send(msg)
-                if event.key == pg.K_UP:
-                    if self.board[curr_x][curr_y - 1] != -1:
-                        # self.player.move(dy=-1)
+                        return
+                elif event.key == pg.K_UP:
+                    if curr_y >= 1 and self.board[curr_x][curr_y - 1] != -1:
+                        self.player.move(dy=-1)
                         msg = msg + "up"
                         network.send(msg)
-                if event.key == pg.K_DOWN:
+                        return
+                elif event.key == pg.K_DOWN:
                     if curr_y + 1 < TILEHEIGHT and self.board[curr_x][curr_y + 1] != -1:
-                        # self.player.move(dy=1)
+                        self.player.move(dy=1)
                         msg = msg + "down"
                         network.send(msg)
+                        return
         
