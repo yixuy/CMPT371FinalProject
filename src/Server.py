@@ -4,11 +4,17 @@ from _thread import *
 import pickle
 from GameLogic.Board import Board
 import GameLogic.Util as Util
+from NetworkUtils import *
+
+
+server = IPADDRESS
+port = PORTNUMBER
+
 playerCount = 0
 gameOn = False
 gameStart = False
-from GameLogic.Util import IPADDRESS, PORTNUMBER
 board = None
+
 
 s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
@@ -36,6 +42,7 @@ Server:
 
 def threaded_client(conn, p):
     print("SERVER: In threaded_client thread")
+
     while True:
         reply = ""
         try:
@@ -45,22 +52,36 @@ def threaded_client(conn, p):
                 break
             else:
                 # reset the game
-                if data == "reset":
+                if data == GAME_RESET:
                     print("data: 'reset' ")
-                
+
                 # do the tile checking
-                elif data == 'get':
+                elif data == GET_BOARD:
                     print("data: client getting info from server")
                     print('Server generated board:')
                     reply = board
 
-                elif data == 'playerOn':
+                elif data == GAME_PREPSTART:
+                    print("Server: Preparing to start the game.")
+                    # TODO: check if game can actually start, it should broadcast to all clients at the same time
+                    # reply = GAME_START
+                    if playerCount >= 2:
+                        reply = GAME_START
+                    else:
+                        reply = 'Game requires minimum of 2 players.'
+
+                elif data == GAME_PLAY:
+                    # normal game info passing
+                    pass
+
+                elif data == PLAYER_JOIN:
                     print("data: new player has joined.")
-                    reply = "newGameFromServer"
+                    reply = p
                     print("playerCount: ", playerCount)
                     if playerCount > 4:
                         reply = "GameFull"
                         print("-----------   Game is full")
+
                 conn.sendall(pickle.dumps(reply))
 
         except:

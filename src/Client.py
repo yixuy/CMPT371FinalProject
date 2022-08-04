@@ -1,6 +1,10 @@
 from GameLogic.Util import WIDTH, HEIGHT
 import pygame
 from Network import Network
+from NetworkUtils import *
+# gameRdy = False
+# gameStart = False
+
 from GameLogic.Game import Game
 pygame.font.init()
 win = pygame.display.set_mode((WIDTH, HEIGHT))
@@ -15,26 +19,59 @@ pygame.display.set_caption("Client")
         '''
 
 
-def main(network):
+def main(network, p):
     run = True
     clock = pygame.time.Clock()
     n = network
-    player = int(n.get_p())
+    player = p
     print("You are Player", player)
+    gameRdy = True
+    gameStart = False
+    gameStartPrep = False
+    g = None
 
     while run:
         clock.tick(60)  # Runs the game in 60fps
         try:
-            # Get data from the server in 60fps (to update own board) 
-            board = n.send("get")
-            g = Game(board.get_board())
-            g.game_screen()
-            while True:
-                g.input_dir(n)
-                g.update()
-                g.draw()
-            
-        
+            '''READY PHASE (for client)
+                - Player stays in READY PHASE until Server says it GAMESTART'''
+            # Get data from the server in 60fps (to update own board)
+            if gameRdy is True:
+                # Get the board once from the server
+                board = n.send(GET_BOARD)
+                # Generate the Game object with the game map
+                if board:
+                    # gameRdy = False
+                    g = Game(board.get_board())
+
+                    win.fill((100, 100, 200))
+                    font = pygame.font.SysFont("comicsans", 60)
+                    text = font.render("Player is Ready!\nPress to Start", True, (255, 0, 0))
+                    win.blit(text, (100, 200))
+                    pygame.display.flip()
+                    gameRdy = False
+                    gameStartPrep = True
+
+            if gameStartPrep is True:
+                for event in pygame.event.get():
+                    if event.type == pygame.MOUSEBUTTONDOWN:
+                        isGameStart = n.send(GAME_PREPSTART)
+                        if isGameStart == GAME_START:
+                            print("GAME CAN START...")
+                            g.game_screen()
+                            while True:
+                                g.input_dir(n)
+                                g.update()
+                                g.draw()
+                            gameStart = True
+                            gameStartPrep = False
+
+            '''START PHASE (for client)'''
+            # Actual Gameplay Logic
+            if gameStart is True:
+                # play the game like normal
+                game = n.send(GAME_PLAY)
+
         except:
             run = False
             print("Couldn't get game")
@@ -45,11 +82,20 @@ def main(network):
                 run = False
                 pygame.quit()
             # if other types of event (movements...)
+            # if event.type == pygame.MOUSEBUTTONDOWN:
+            #     isGameStart = n.send(GAME_PREPSTART)
+            #     if isGameStart == GAME_START:
+            #         print("GAME CAN START...")
+            #         g.game_screen()
+            #         g.start_game()
+            #         gameStart = True
+            #         gameRdy = False
 
         # run = False
 
 
 def menu_screen():
+    playerNum = 0
     run = True
     clock = pygame.time.Clock()
     n = Network()
@@ -73,7 +119,7 @@ def menu_screen():
                 run = False
                 p1 = n.connect()
                 print("p1: ", p1)
-                new_game = n.send("playerOn")
+                new_game = n.send(PLAYER_JOIN)
                 # new_game = n.recv()
                 print("new game received: ", new_game)
                 if new_game == "GameFull":
@@ -81,13 +127,17 @@ def menu_screen():
                     n.disconnect()
                     pygame.quit()
                     run = False
+                else:
+                    playerNum = new_game
 
+                # UI
                 win.fill((200, 200, 128))
                 font = pygame.font.SysFont("comicsans", 60)
                 text = font.render("Player READY", True, (255, 0, 0))
                 win.blit(text, (100, 200))
                 pygame.display.update()
-    main(n)
+
+    main(n, playerNum)
 
 
 while True:
