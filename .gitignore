@@ -1,3 +1,2 @@
-__pycache__/
-*.pyc
+.src/GameLogic/__pycache__/
 .idea
