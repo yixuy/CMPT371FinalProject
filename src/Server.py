@@ -10,6 +10,7 @@ from NetworkUtils import *
 server = IPADDRESS
 port = PORTNUMBER
 
+MAX_PLAYERS = 4
 playerCount = 0
 gameOn = False
 gameStart = False
@@ -82,13 +83,21 @@ def delete_client_from_list(conn, addr):
         pass
 
 
-def threaded_client(conn, addr, pCount, isGameInProgress):
-    print("SERVER: In threaded_client thread")
+def broadcast(msg):
+    for client in clients:
+        if client is not None:
+            my_conn = client[0]
+            my_conn.send(pickle.dumps(msg))
 
+
+def threaded_client(pConn, pAddr):
+    print("SERVER: In threaded_client thread")
     while True:
+        pCount = MAX_PLAYERS - len(free_clients_indices)
+        print(" ----------- PCOUNT: ", pCount)
         reply = ""
         try:
-            data = conn.recv(4096).decode()
+            data = pConn.recv(4096).decode()
             if not data:
                 break
             else:
@@ -98,8 +107,7 @@ def threaded_client(conn, addr, pCount, isGameInProgress):
 
                 # do the tile checking
                 elif data == GET_BOARD:
-                    print("data: client getting info from server")
-                    print('Server generated board:')
+                    print("data: client getting board from server")
                     reply = board
 
                 elif data == GAME_PREPSTART:
@@ -108,6 +116,8 @@ def threaded_client(conn, addr, pCount, isGameInProgress):
                     #  it should broadcast to all clients at the same time
                     if pCount >= 2:
                         reply = GAME_START
+                        broadcast(reply)
+                        break
                     else:
                         reply = 'Game requires minimum of 2 players.'
 
@@ -117,41 +127,39 @@ def threaded_client(conn, addr, pCount, isGameInProgress):
 
                 elif data == PLAYER_JOIN:
                     print("data: new player has joined.")
-                    pNum = add_client_to_list(conn, addr, 0)
-                    # pNum = 2
+                    pNum = add_client_to_list(pConn, pAddr, 0)
                     reply = pNum
                     print("playerCount: ", pNum)
 
 
                     # Both of these checks will not allow player to join the game.
-                    if isGameInProgress:
-                        reply = GAME_IN_PROGRESS
-                    # elif pCount > 4:
-                    elif pNum is None:
+                    # if isGameInProgress:
+                    #     reply = GAME_IN_PROGRESS
+                    if pNum is None:
                         reply = "GameFull"
                         print("-----------   Game is full")
 
                 elif data == PLAYER_DISCONNECT:
                     # todo: remove them in clients, decrement player count
-                    delete_client_from_list(conn, addr)
+                    delete_client_from_list(pConn, pAddr)
 
-                conn.sendall(pickle.dumps(reply))
+                pConn.sendall(pickle.dumps(reply))
 
         except:
             break
 
     print("conn.close()")
-    conn.close()
+    pConn.close()
 
 
 while True:
     conn, addr = s.accept()
-
+    avail_spots = len(free_clients_indices)
 
     '''START PHASE'''
     # Server begins to start the game
     if gameStart is True:
-        if playerCount < 2:
+        if avail_spots < 2:
             gameStart = False
 
     '''READY PHASE'''
@@ -160,8 +168,7 @@ while True:
         print("Starting new game...\nGenerating new map...")
         board = Board(Util.TILEWIDTH, Util.TILEHEIGHT)
         board.initialize_board()
-        # playerCount += 1
         gameOn = True  # When the first player 'starts' the game, other players just need to join (map generates once)
 
 
-    start_new_thread(threaded_client, (conn, addr, playerCount, gameStart))  # playerCount can act as playerNumber
+    start_new_thread(threaded_client, (conn, addr))  # playerCount can act as playerNumber

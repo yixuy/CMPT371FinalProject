@@ -132,7 +132,7 @@ def menu_screen():
                 # UI
                 win.fill((200, 200, 128))
                 font = pygame.font.SysFont("comicsans", 60)
-                text = font.render("Player READY", True, (255, 0, 0))
+                text = font.render("Player READYING...", True, (255, 0, 0))
                 win.blit(text, (100, 200))
                 pygame.display.update()
 

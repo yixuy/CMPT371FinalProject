@@ -10,5 +10,5 @@ GAME_IN_PROGRESS = 'GameInProgress'
 PLAYER_DISCONNECT = 'PlayerDisconnect'
 
 IPADDRESS = 'localhost'
-PORTNUMBER = 60000
+PORTNUMBER = 50000
 
