@@ -78,6 +78,7 @@ def main(network, p):
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 run = False
+                msg = n.send(PLAYER_DISCONNECT)
                 pygame.quit()
             # if other types of event (movements...)
             # if event.type == pygame.MOUSEBUTTONDOWN:
@@ -115,13 +116,13 @@ def menu_screen():
             if event.type == pygame.MOUSEBUTTONDOWN:
                 print("button pressed - ready")
                 run = False
-                p1 = n.connect()
-                print("p1: ", p1)
+                n.connect()
+                # print("p1: ", p1)
                 new_game = n.send(PLAYER_JOIN)
                 # new_game = n.recv()
                 print("new game received: ", new_game)
-                if new_game == "GameFull":
-                    print("Game is full... Closing client connection...")
+                if new_game == GAME_FULL or new_game == GAME_IN_PROGRESS:
+                    print("Game is either full or in progress...\nClosing client connection...")
                     n.disconnect()
                     pygame.quit()
                     run = False

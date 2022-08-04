@@ -10,11 +10,13 @@ class Network:
         self.server = IPADDRESS
         self.port = PORTNUMBER
         self.addr = (self.server, self.port)
+        self.pNum = None    # player number
 
     def connect(self):
         try:
             self.client.connect(self.addr)
-            return self.client.recv(2048).decode()
+            # return self.client.recv(2048).decode()
+            return
         except:
             pass
 
@@ -34,3 +36,9 @@ class Network:
             self.client.close()
         except:
             pass
+
+    def set_pNum(self, num):
+        pNum = num
+
+    def get_pNum(self):
+        return self.pNum
