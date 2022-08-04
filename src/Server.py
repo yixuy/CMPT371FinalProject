@@ -44,32 +44,16 @@ Server:
 '''
 
 
-def add_client_to_list(conn, addr, pCount):
+def add_client_to_list(conn, addr):
     print("Server: using add_client_to_list()")
     # clients format: [ [conn, ip, port], [conn, ip, port], etc ],
-    # clients indices are kept the same (even when removed)
-    # if 0 < pCount < 5:
-    #     if len(free_clients_indices) > 0:
-    #         free_clients_indices.sort()  # so the smallest player number is preferred
-    #         clients[free_clients_indices[0]] = [conn, addr[0], addr[1]]
-    #     print("clients: ", clients)
-    #     print("first client's port number: ", clients[0][2])
-    #     playerNum = free_clients_indices[0] + 1  # bcs indices start from 0
-    #     free_clients_indices.pop(0)
-    #     return playerNum
-    # return None
-
-    # V2
-    # print("clients: ", clients)
-    # print("first client's port number: ", clients[0][2])
+    # Note: clients indices are kept the same (even when removed)
     if len(free_clients_indices) > 0:
         free_clients_indices.sort()  # so the smallest player number is preferred
         to_use_i = free_clients_indices.pop(0)
-        print("to_use_i: ", to_use_i)
-        print("break: ", clients[to_use_i])
         clients[to_use_i] = [conn, addr[0], addr[1]]
-        playerNum = to_use_i + 1  # bcs indices start from 0
-        return playerNum
+        player_num = to_use_i + 1  # bcs indices start from 0
+        return player_num
     return None
 
 
@@ -90,14 +74,14 @@ def broadcast(msg):
             my_conn.send(pickle.dumps(msg))
 
 
-def threaded_client(pConn, pAddr):
+def threaded_client(p_conn, p_addr):
     print("SERVER: In threaded_client thread")
     while True:
-        pCount = MAX_PLAYERS - len(free_clients_indices)
-        print(" ----------- PCOUNT: ", pCount)
+        p_count = MAX_PLAYERS - len(free_clients_indices)
+        print(" ----------- PCOUNT: ", p_count)
         reply = ""
         try:
-            data = pConn.recv(4096).decode()
+            data = p_conn.recv(4096).decode()
             if not data:
                 break
             else:
@@ -114,7 +98,7 @@ def threaded_client(pConn, pAddr):
                     print("Server: Preparing to start the game.")
                     # TODO: check if game can actually start,
                     #  it should broadcast to all clients at the same time
-                    if pCount >= 2:
+                    if p_count >= 2:
                         reply = GAME_START
                         broadcast(reply)
                         break
@@ -127,29 +111,29 @@ def threaded_client(pConn, pAddr):
 
                 elif data == PLAYER_JOIN:
                     print("data: new player has joined.")
-                    pNum = add_client_to_list(pConn, pAddr, 0)
-                    reply = pNum
-                    print("playerCount: ", pNum)
+                    player_num = add_client_to_list(p_conn, p_addr, 0)
+                    reply = player_num
+                    print("player number: ", player_num)
 
 
                     # Both of these checks will not allow player to join the game.
                     # if isGameInProgress:
                     #     reply = GAME_IN_PROGRESS
-                    if pNum is None:
+                    if player_num is None:
                         reply = "GameFull"
                         print("-----------   Game is full")
 
                 elif data == PLAYER_DISCONNECT:
                     # todo: remove them in clients, decrement player count
-                    delete_client_from_list(pConn, pAddr)
+                    delete_client_from_list(p_conn, p_addr)
 
-                pConn.sendall(pickle.dumps(reply))
+                p_conn.sendall(pickle.dumps(reply))
 
         except:
             break
 
     print("conn.close()")
-    pConn.close()
+    p_conn.close()
 
 
 while True:
@@ -171,4 +155,4 @@ while True:
         gameOn = True  # When the first player 'starts' the game, other players just need to join (map generates once)
 
 
-    start_new_thread(threaded_client, (conn, addr))  # playerCount can act as playerNumber
+    start_new_thread(threaded_client, (conn, addr))

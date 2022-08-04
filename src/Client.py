@@ -24,8 +24,8 @@ def main(network, p):
     run = True
     clock = pygame.time.Clock()
     n = network
-    player = p
-    print("You are Player", player)
+    player_num = p
+    print("You are Player", player_num)
     gameRdy = True
     gameStart = False
     gameStartPrep = False
@@ -40,9 +40,9 @@ def main(network, p):
             if gameRdy is True:
                 # Get the board once from the server
                 board = n.send(GET_BOARD)
+
                 # Generate the Game object with the game map
                 if board:
-                    # gameRdy = False
                     g = Game(board.get_board())
 
                     win.fill((100, 100, 200))
@@ -80,21 +80,11 @@ def main(network, p):
                 run = False
                 msg = n.send(PLAYER_DISCONNECT)
                 pygame.quit()
-            # if other types of event (movements...)
-            # if event.type == pygame.MOUSEBUTTONDOWN:
-            #     isGameStart = n.send(GAME_PREPSTART)
-            #     if isGameStart == GAME_START:
-            #         print("GAME CAN START...")
-            #         g.game_screen()
-            #         g.start_game()
-            #         gameStart = True
-            #         gameRdy = False
 
         # run = False
 
 
 def menu_screen():
-    playerNum = 0
     run = True
     clock = pygame.time.Clock()
     n = Network()
@@ -117,9 +107,7 @@ def menu_screen():
                 print("button pressed - ready")
                 run = False
                 n.connect()
-                # print("p1: ", p1)
                 new_game = n.send(PLAYER_JOIN)
-                # new_game = n.recv()
                 print("new game received: ", new_game)
                 if new_game == GAME_FULL or new_game == GAME_IN_PROGRESS:
                     print("Game is either full or in progress...\nClosing client connection...")
@@ -127,16 +115,16 @@ def menu_screen():
                     pygame.quit()
                     run = False
                 else:
-                    playerNum = new_game
+                    n.set_player_num(new_game)
 
                 # UI
                 win.fill((200, 200, 128))
                 font = pygame.font.SysFont("comicsans", 60)
-                text = font.render("Player READYING...", True, (255, 0, 0))
+                text = font.render("Player Getting Ready...", True, (255, 0, 0))
                 win.blit(text, (100, 200))
                 pygame.display.update()
 
-    main(n, playerNum)
+    main(n, n.get_player_num())
 
 
 while True:

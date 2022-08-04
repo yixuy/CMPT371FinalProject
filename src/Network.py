@@ -10,7 +10,7 @@ class Network:
         self.server = IPADDRESS
         self.port = PORTNUMBER
         self.addr = (self.server, self.port)
-        self.pNum = None    # player number
+        self.player_num = None
 
     def connect(self):
         try:
@@ -24,9 +24,6 @@ class Network:
     def send(self, data):
         try:
             self.client.send(data.encode())
-            # return self.client.recv(2048).decode()
-            # self.client.send(str.encode(data))
-            # response = pickle.loads(self.client.recv(2048*2))
             return pickle.loads(self.client.recv(2048*2))
         except socket.error as e:
             print("Error [Network.py]: ", e)
@@ -37,8 +34,8 @@ class Network:
         except:
             pass
 
-    def set_pNum(self, num):
-        pNum = num
+    def set_player_num(self, num):
+        self.player_num = num
 
-    def get_pNum(self):
-        return self.pNum
+    def get_player_num(self):
+        return self.player_num
