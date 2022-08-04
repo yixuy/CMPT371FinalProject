@@ -25,7 +25,7 @@ TILEHEIGHT = HEIGHT // TILESIZE
 IPADDRESS = 'localhost'
 PORTNUMBER = 50000
 
-UP = "up"
-RIGHT = "right"
-LEFT = "left"
-DOWN = "down"
+UP = "UP"
+RIGHT = "RIGHT"
+LEFT = "LEFT"
+DOWN = "DOWN"
