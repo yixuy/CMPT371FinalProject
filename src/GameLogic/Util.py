@@ -1,3 +1,6 @@
+from tkinter import LEFT
+
+
 COLOURS = {
     # WHITE
     0:(255, 255, 255),
@@ -24,3 +27,8 @@ TILEWIDTH = WIDTH // TILESIZE
 TILEHEIGHT = HEIGHT // TILESIZE
 IPADDRESS = 'localhost'
 PORTNUMBER = 50000
+
+UP = "up"
+RIGHT = "right"
+LEFT = "left"
+DOWN = "down"
