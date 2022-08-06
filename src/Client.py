@@ -2,12 +2,8 @@ from GameLogic.Util import WIDTH, HEIGHT
 import pygame
 from Network import Network
 from NetworkUtils import *
-# gameRdy = False
-# gameStart = False
-
 from GameLogic.Game import Game
 pygame.font.init()
-
 win = pygame.display.set_mode((WIDTH, HEIGHT))
 pygame.display.set_caption("Client")
 
@@ -40,7 +36,6 @@ def main(network, p):
             if gameRdy is True:
                 # Get the board once from the server
                 board = n.send(GET_BOARD)
-
                 # Generate the Game object with the game map
                 if board:
                     g = Game(board.get_board())
@@ -59,16 +54,17 @@ def main(network, p):
                         isGameStart = n.send(GAME_PREPSTART)
                         if isGameStart == GAME_START:
                             print("GAME CAN START...")
-                            g.game_screen()
-                            g.start_game()
                             gameStart = True
                             gameStartPrep = False
 
-            '''START PHASE (for client)'''
+            '''GAME PHASE (for client)'''
             # Actual Gameplay Logic
             if gameStart is True:
-                # play the game like normal
-                game = n.send(GAME_PLAY)
+                g.game_screen()
+                while True:
+                    g.input_dir(network, player_num)
+                    g.update()
+                    g.draw()
 
         except:
             run = False
@@ -78,10 +74,7 @@ def main(network, p):
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 run = False
-                msg = n.send(PLAYER_DISCONNECT)
                 pygame.quit()
-
-        # run = False
 
 
 def menu_screen():
@@ -106,7 +99,8 @@ def menu_screen():
             if event.type == pygame.MOUSEBUTTONDOWN:
                 print("button pressed - ready")
                 run = False
-                n.connect()
+                p1 = n.connect()
+                print("p1: ", p1)
                 new_game = n.send(PLAYER_JOIN)
                 print("new game received: ", new_game)
                 if new_game == GAME_FULL or new_game == GAME_IN_PROGRESS:
@@ -120,7 +114,7 @@ def menu_screen():
                 # UI
                 win.fill((200, 200, 128))
                 font = pygame.font.SysFont("comicsans", 60)
-                text = font.render("Player Getting Ready...", True, (255, 0, 0))
+                text = font.render("Player READY", True, (255, 0, 0))
                 win.blit(text, (100, 200))
                 pygame.display.update()
 
