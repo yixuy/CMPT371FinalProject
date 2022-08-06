@@ -97,6 +97,7 @@ def threaded_client(p_conn, p_addr):
                 # reset the game
                 if data == GAME_RESET:
                     print("data: 'reset' ")
+                    reply = "Game reset"
 
                 # do the tile checking
                 elif data == GET_BOARD:
@@ -105,18 +106,17 @@ def threaded_client(p_conn, p_addr):
 
                 elif data == GAME_PREPSTART:
                     print("Server: Preparing to start the game.")
-                    # TODO: check if game can actually start,
-                    #  it should broadcast to all clients at the same time
                     if p_count >= 2:
                         reply = GAME_START
                         broadcast(reply)
-                        break
+                        continue
                     else:
                         reply = 'Game requires minimum of 2 players.'
 
                 elif data == GAME_PLAY:
                     # normal game info passing
-                    pass
+                    print("data: in game_play")
+                    reply = "hello world"
 
                 elif data == PLAYER_JOIN:
                     print("data: new player has joined.")

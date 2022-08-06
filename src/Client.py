@@ -46,9 +46,11 @@ def main(network, p):
                     g = Game(board.get_board())
 
                     win.fill((100, 100, 200))
-                    font = pygame.font.SysFont("comicsans", 60)
-                    text = font.render("Player is Ready!\nPress to Start", True, (255, 0, 0))
-                    win.blit(text, (100, 200))
+                    font = pygame.font.SysFont("comicsans", 37)
+                    text = font.render("Player is Ready!", True, (255, 0, 0))
+                    text2 = font.render("Press Space to start game!", True, (255, 0, 0))
+                    win.blit(text, (15, 150))
+                    win.blit(text2, (15, 230))
                     pygame.display.flip()
                     gameRdy = False
                     gameStartPrep = True
@@ -57,8 +59,8 @@ def main(network, p):
                 for event in pygame.event.get():
                     if event.type == pygame.KEYDOWN:
                         if event.key == pygame.K_SPACE:
-                            print("PRESSED")
                             isGameStart = n.send(GAME_PREPSTART)
+
                             if isGameStart == GAME_START:
                                 print("GAME CAN START...")
                                 g.game_screen()
@@ -85,7 +87,6 @@ def main(network, p):
             print("Couldn't get game")
             break
 
-
         # run = False
 
 
@@ -95,9 +96,9 @@ def menu_screen():
     n = Network()
 
     win.fill((128, 128, 128))
-    font = pygame.font.SysFont("comicsans", 60)
+    font = pygame.font.SysFont("comicsans", 50)
     text = font.render("Press Space to Play!", True, (255, 0, 0))
-    win.blit(text, (100, 200))
+    win.blit(text, (20, 200))
     pygame.display.flip()
 
     while run:
@@ -119,9 +120,9 @@ def menu_screen():
                         n.set_player_num(new_game)
                         # UI
                         win.fill((200, 200, 128))
-                        font = pygame.font.SysFont("comicsans", 60)
+                        font = pygame.font.SysFont("comicsans", 45)
                         text = font.render("Player Getting Ready...", True, (255, 0, 0))
-                        win.blit(text, (100, 200))
+                        win.blit(text, (20, 200))
                         pygame.display.update()
             if event.type == pygame.QUIT:
                 print("quitting game...")
