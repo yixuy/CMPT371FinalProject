@@ -61,7 +61,6 @@ def add_client_to_list(p_conn, p_addr):
         to_use_i = free_clients_indices.pop(0)
         clients[to_use_i] = [p_conn, p_addr[0], p_addr[1]]
         player_num = to_use_i + 1  # bcs indices start from 0
-        print('client list: ', clients)
         return player_num
     return None
 
@@ -109,7 +108,6 @@ def threaded_client(p_conn, p_addr):
                     # TODO: check if game can actually start,
                     #  it should broadcast to all clients at the same time
                     if p_count >= 2:
-
                         reply = GAME_START
                         broadcast(reply)
                         break
@@ -133,7 +131,7 @@ def threaded_client(p_conn, p_addr):
                     # if isGameInProgress:
                     #     reply = GAME_IN_PROGRESS
                     if player_num is None:
-                        reply = GAME_FULL
+                        reply = "GameFull"
                         print("-----------   Game is full")
 
                 elif data == PLAYER_DISCONNECT:
