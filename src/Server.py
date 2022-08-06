@@ -65,10 +65,10 @@ def add_client_to_list(p_conn, p_addr):
     return None
 
 
-def delete_client_from_list(p_conn, addr):
+def delete_client_from_list(p_conn, p_addr):
     try:
         for x in range(0, len(clients)):
-            if clients[x][1] == addr[0] and clients[x][1] == addr[1]:
+            if clients[x][1] == p_addr[0] and clients[x][1] == p_addr[1]:
                 clients[x] = None
                 free_clients_indices.append(x)
     except:
