@@ -1,4 +1,3 @@
-from .Util import COLOURS, TILESIZE
 class Tile:
     def __init__(self):
         self.x = 0

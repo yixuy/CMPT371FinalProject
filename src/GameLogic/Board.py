@@ -72,12 +72,7 @@ class Board:
             cellType = random.randint(0, 2)
             random_Y = random.randint(0, self.rows - 1)
             random_X = random.randint(0, self.columns - 1)
-            if (
-                random_Y != 0
-                and random_X != 0
-                and random_Y != self.rows - 1
-                and random_X != self.columns - 1
-            ):
+            if random_Y != 0 and random_X != 0 and random_Y != self.rows - 1 and random_X != self.columns - 1:
                 self.board[random_Y][random_X] = -1
                 if cellType == 0:
                     self.set_cell_type0(random_X, random_Y)
@@ -89,8 +84,4 @@ class Board:
                     self.board[random_Y][random_X] = 0
 
     def print_board(self):
-        print(
-            "\n".join(
-                " ".join("{0: ^3}".format(str(i)) for i in row) for row in self.board
-            )
-        )
+        print('\n'.join(' '.join('{0: ^3}'.format(str(i)) for i in row) for row in self.board))

@@ -1,14 +1,13 @@
 import pickle
-from re import T
 import socket
-from _thread import *
-import pickle
 import time
-from GameLogic.Board import Board
-import GameLogic.Util as Util
-from NetworkUtils import *
+import datetime
+from _thread import *
 from threading import Timer
 
+import GameLogic.Util as Util
+from GameLogic.Board import Board
+from NetworkUtils import *
 
 server = IPADDRESS
 port = PORTNUMBER
@@ -19,9 +18,8 @@ game_running = False
 board = None
 
 timer_running = False
-TOTAL_GAME_TIME_IN_MINUTES = 30 / 60
-timer = Timer(TOTAL_GAME_TIME_IN_MINUTES, print("Holay!"))
-
+TOTAL_GAME_TIME_IN_SECONDS = 30
+timer = None
 
 s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
@@ -98,28 +96,34 @@ def threaded_client(conn, p):
 
 
 def reset_timer():
+    global timer_running, timer
     timer_running = False
-    if timer.is_alive():
+    if timer is not None and timer.is_alive():
         timer.cancel()
 
 
 def start_timer():
+    global timer_running, timer
     timer_running = True
+    game_duration = datetime.datetime.strptime(time.strftime('%H:%M:%S'), '%H:%M:%S') + \
+                    datetime.timedelta(0, TOTAL_GAME_TIME_IN_SECONDS + 1)
 
     def display(msg):
-        print(msg + " " + time.strftime("%H:%M:%S"))
+        remaining_seconds = int((game_duration - datetime.datetime.strptime(time.strftime('%H:%M:%S'), '%H:%M:%S')). \
+            total_seconds())
+        message = msg + " " + str(remaining_seconds)
+        print(message)
+        # conn.sendall(pickle.dumps(message))
 
     class RepeatTimer(Timer):
         def run(self):
             while not self.finished.wait(self.interval):
                 self.function(*self.args, **self.kwargs)
-                print(" ")
 
-    ##We are now creating a thread timer and controling it
     timer = RepeatTimer(1, display, ["Repeating"])
     timer.start()  # recalling run
     print("Threading started")
-    time.sleep(10)  # It gets suspended for the given number of seconds
+    time.sleep(TOTAL_GAME_TIME_IN_SECONDS + 2)  # Let the timer "run" for the duration of the game until it reaches '0'
     print("Threading finishing")
     timer.cancel()
 
@@ -127,16 +131,20 @@ def start_timer():
 while True:
     conn, addr = s.accept()
 
+    if not timer_running:
+        start_new_thread(start_timer, ())
+
     """START PHASE"""
     # Server begins the game
     if game_running is True:
-        if not timer_running:
-            start_timer()
+        # if not timer_running:
+        #     start_timer()
         if player_count < 2:
             game_running = False
-            reset_timer()  # reset the timer
+            # reset_timer()  # reset the timer
     else:  # Game is not running as the flag is false; reset the timer
-        reset_timer()
+        # reset_timer()
+        pass
 
     """READY PHASE"""
     # player_ready is True when at least one player is connected (initiated the map)

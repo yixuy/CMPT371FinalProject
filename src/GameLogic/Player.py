@@ -1,6 +1,6 @@
-from time import sleep
-from .Util import TILESIZE, TILEWIDTH
 import pygame as pg
+
+from .Util import TILESIZE, TILEWIDTH
 
 
 # https://www.youtube.com/watch?v=3UxnelT9aCo

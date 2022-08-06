@@ -1,9 +1,9 @@
-import pygame as pg
 import sys
-from .Wall import *
-from .Player import *
-from .Util import *
+
 from .Board import *
+from .Player import *
+from .Wall import *
+
 
 # Reference: https://www.youtube.com/watch?v=3UxnelT9aCo
 class Game:
