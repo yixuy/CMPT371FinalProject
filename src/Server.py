@@ -111,7 +111,7 @@ def threaded_client(p_conn, p_addr):
 
                 elif data == PLAYER_JOIN:
                     print("data: new player has joined.")
-                    player_num = add_client_to_list(p_conn, p_addr, 0)
+                    player_num = add_client_to_list(p_conn, p_addr)
                     reply = player_num
                     print("player number: ", player_num)
 
