@@ -3,7 +3,6 @@ import pygame
 from Network import Network
 from NetworkUtils import *
 from GameLogic.Game import Game
-
 pygame.font.init()
 win = pygame.display.set_mode((WIDTH, HEIGHT))
 pygame.display.set_caption("Client")
@@ -21,8 +20,8 @@ def main(network, p):
     run = True
     clock = pygame.time.Clock()
     n = network
-    player = p
-    print("You are Player", player)
+    player_num = p
+    print("You are Player", player_num)
     gameRdy = True
     gameStart = False
     gameStartPrep = False
@@ -39,7 +38,6 @@ def main(network, p):
                 board = n.send(GET_BOARD)
                 # Generate the Game object with the game map
                 if board:
-                    # gameRdy = False
                     g = Game(board.get_board())
 
                     win.fill((100, 100, 200))
@@ -59,12 +57,12 @@ def main(network, p):
                             gameStart = True
                             gameStartPrep = False
 
-            '''START PHASE (for client)'''
+            '''GAME PHASE (for client)'''
             # Actual Gameplay Logic
             if gameStart is True:
                 g.game_screen()
                 while True:
-                    g.input_dir(network, player)
+                    g.input_dir(network, player_num)
                     g.update()
                     g.draw()
 
@@ -80,7 +78,6 @@ def main(network, p):
 
 
 def menu_screen():
-    playerNum = 0
     run = True
     clock = pygame.time.Clock()
     n = Network()
@@ -105,15 +102,14 @@ def menu_screen():
                 p1 = n.connect()
                 print("p1: ", p1)
                 new_game = n.send(PLAYER_JOIN)
-                # new_game = n.recv()
                 print("new game received: ", new_game)
-                if new_game == "GameFull":
-                    print("Game is full... Closing client connection...")
+                if new_game == GAME_FULL or new_game == GAME_IN_PROGRESS:
+                    print("Game is either full or in progress...\nClosing client connection...")
                     n.disconnect()
                     pygame.quit()
                     run = False
                 else:
-                    playerNum = new_game
+                    n.set_player_num(new_game)
 
                 # UI
                 win.fill((200, 200, 128))
@@ -122,7 +118,7 @@ def menu_screen():
                 win.blit(text, (100, 200))
                 pygame.display.update()
 
-    main(n, playerNum)
+    main(n, n.get_player_num())
 
 
 while True:

@@ -5,11 +5,6 @@ import pickle
 from GameLogic.Board import Board
 import GameLogic.Util as Util
 from NetworkUtils import *
-
-
-server = IPADDRESS
-port = PORTNUMBER
-
 MAX_PLAYERS = 4
 playerCount = 0
 gameOn = False
@@ -102,7 +97,7 @@ def threaded_client(p_conn, p_addr):
                     if p_count >= 2:
                         reply = GAME_START
                         broadcast(reply)
-                        break
+                        continue
                     else:
                         reply = 'Game requires minimum of 2 players.'
 
