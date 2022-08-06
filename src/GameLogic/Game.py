@@ -53,7 +53,6 @@ class Game():
         pg.display.flip()
 
     def input_dir(self, network, player):
-        print(player)
         msg = GAME_PLAY + ";" + str(player) + ";"
         for event in pg.event.get():
             if event.type == pg.QUIT:

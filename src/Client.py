@@ -2,10 +2,8 @@ from GameLogic.Util import WIDTH, HEIGHT
 import pygame
 from Network import Network
 from NetworkUtils import *
-# gameRdy = False
-# gameStart = False
-
 from GameLogic.Game import Game
+
 pygame.font.init()
 win = pygame.display.set_mode((WIDTH, HEIGHT))
 pygame.display.set_caption("Client")
@@ -58,19 +56,17 @@ def main(network, p):
                         isGameStart = n.send(GAME_PREPSTART)
                         if isGameStart == GAME_START:
                             print("GAME CAN START...")
-                            g.game_screen()
-                            while True:
-                                g.input_dir(network, player)
-                                g.update()
-                                g.draw()
                             gameStart = True
                             gameStartPrep = False
 
             '''START PHASE (for client)'''
             # Actual Gameplay Logic
             if gameStart is True:
-                # play the game like normal
-                game = n.send(GAME_PLAY)
+                g.game_screen()
+                while True:
+                    g.input_dir(network, player)
+                    g.update()
+                    g.draw()
 
         except:
             run = False
