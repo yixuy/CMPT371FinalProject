@@ -1,6 +1,5 @@
 import socket
 import pickle
-
 from NetworkUtils import IPADDRESS, PORTNUMBER
 
 
@@ -10,11 +9,12 @@ class Network:
         self.server = IPADDRESS
         self.port = PORTNUMBER
         self.addr = (self.server, self.port)
+        self.player_num = None
 
     def connect(self):
         try:
             self.client.connect(self.addr)
-            return self.client.recv(2048).decode()
+            return
         except:
             pass
 
@@ -22,15 +22,25 @@ class Network:
     def send(self, data):
         try:
             self.client.send(data.encode())
-            # return self.client.recv(2048).decode()
-            # self.client.send(str.encode(data))
-            # response = pickle.loads(self.client.recv(2048*2))
             return pickle.loads(self.client.recv(2048*2))
         except socket.error as e:
             print("Error [Network.py]: ", e)
+
+    def recv(self):
+        try:
+            return pickle.loads(self.client.recv(2048*2))
+        except:
+            # pass # Do nothing
+            return None
 
     def disconnect(self):
         try:
             self.client.close()
         except:
             pass
+
+    def set_player_num(self, num):
+        self.player_num = num
+
+    def get_player_num(self):
+        return self.player_num

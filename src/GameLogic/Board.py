@@ -19,6 +19,10 @@ class Board:
     def set_rows(self, rows):
         self.rows = rows
 
+
+    def set_cell(self, x_coord, y_coord, color):
+        self.board[y_coord][x_coord] = color
+
     # Cell Type 0: 1x1 cell
     # Cell Type 1: 1x2 cell
     # Cell Type 2: 2x1 cell
