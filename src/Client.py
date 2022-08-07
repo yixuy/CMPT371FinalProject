@@ -4,6 +4,7 @@ import pygame
 from Network import Network
 from NetworkUtils import *
 from GameLogic.Game import Game
+
 pygame.font.init()
 win = pygame.display.set_mode((WIDTH, HEIGHT))
 pygame.display.set_caption("Client")
@@ -23,9 +24,11 @@ def main(network, p):
     n = network
     player_num = p
     print("You are Player", player_num)
-    gameRdy = True
-    gameStart = False
-    gameStartPrep = False
+    # Game needs to be "ready" first, then be started
+    is_game_ready = True
+    is_game_starting = False
+    is_game_running = False
+    show_score = False
     g = None
 
     while run:
@@ -34,7 +37,7 @@ def main(network, p):
             '''READY PHASE (for client)
                 - Player stays in READY PHASE until Server says it GAMESTART'''
             # Get data from the server in 60fps (to update own board)
-            if gameRdy is True:
+            if is_game_ready is True:
                 # Get the board once from the server
                 board = n.send(GET_BOARD)
                 # Generate the Game object with the game map
@@ -46,31 +49,46 @@ def main(network, p):
                     text = font.render("Player is Ready!\nPress to Start", True, (255, 0, 0))
                     win.blit(text, (100, 200))
                     pygame.display.flip()
-                    gameRdy = False
-                    gameStartPrep = True
+                    is_game_ready = False
+                    is_game_starting = True
 
-            if gameStartPrep is True:
+            if is_game_starting is True:
                 for event in pygame.event.get():
                     if event.type == pygame.MOUSEBUTTONDOWN:
-                        isGameStart = n.send(GAME_PREPSTART)
-                        if isGameStart == GAME_START:
+                        start_game = n.send(GAME_PREPSTART)
+                        if start_game == GAME_START:
                             print("GAME CAN START...")
-                            gameStart = True
-                            gameStartPrep = False
+                            is_game_running = True
+                            is_game_starting = False
 
             '''GAME PHASE (for client)'''
             # Actual Gameplay Logic
-            if gameStart is True:
+            if is_game_running is True:
                 g.game_screen()
+                update_counter = 0
                 while True:
+                    if update_counter % 60 == 0:
+                        remaining_game_time = n.send(REMAINING_GAMETIME)
+                        if remaining_game_time == "Remaining Time: 0s" or \
+                                remaining_game_time == "Remaining Time: -1s":
+                            is_game_running = False
+                            show_score = True
+                            break
                     g.input_dir(network, player_num)
                     g.update()
                     g.draw()
+                    update_counter += 1
 
+            if show_score is True:
+                # TODO: implement score displaying logic
+                win.fill((100, 100, 200))
+                font = pygame.font.SysFont("comicsans", 60)
+                text = font.render("Game Over!", True, (255, 0, 0))
+                win.blit(text, (100, 200))
+                pygame.display.flip()
         except:
             run = False
             print("Couldn't get game")
-            break
 
         for event in pygame.event.get():
             if event.type == pygame.QUIT:

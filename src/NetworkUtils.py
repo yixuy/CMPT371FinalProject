@@ -8,6 +8,7 @@ GAME_RESET = 'GameReset'
 GAME_FULL = 'GameFull'
 GAME_IN_PROGRESS = 'GameInProgress'
 PLAYER_DISCONNECT = 'PlayerDisconnect'
+REMAINING_GAMETIME = "RemainingGameTime"
 
 IPADDRESS = 'localhost'
 PORTNUMBER = 50000

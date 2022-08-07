@@ -9,19 +9,20 @@ import GameLogic.Util as Util
 from GameLogic.Board import Board
 from NetworkUtils import *
 
-
 MAX_PLAYERS = 4
 player_count = 0
-players_ready = False
-game_running = False
+are_players_ready = False
+is_game_running = False
 board = None
 
 free_clients_indices = [0, 1, 2, 3]
 clients = [None] * len(free_clients_indices)
 
-timer_running = False
 TOTAL_GAME_TIME_IN_SECONDS = 30
+REMAINING_TIME_MSG = "Remaining Time: "
 timer = None
+is_timer_running = False
+remaining_game_time = REMAINING_TIME_MSG + str(TOTAL_GAME_TIME_IN_SECONDS) + "s"
 
 s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
@@ -60,7 +61,7 @@ def add_client_to_list(conn, addr):
     return None
 
 
-def delete_client_from_list(conn, addr):
+def delete_client_from_list(addr):
     try:
         for x in range(0, len(clients)):
             if clients[x][1] == addr[0] and clients[x][1] == addr[1]:
@@ -81,7 +82,7 @@ def threaded_client(p_conn, p_addr):
     print("SERVER: In threaded_client thread")
     while True:
         p_count = MAX_PLAYERS - len(free_clients_indices)
-        print(" ----------- PCOUNT: ", p_count)
+        print(" ----------- PCOUNT:", p_count)
         reply = ""
         try:
             data = p_conn.recv(4096).decode()
@@ -117,7 +118,7 @@ def threaded_client(p_conn, p_addr):
                     print("data: new player has joined.")
                     player_num = add_client_to_list(p_conn, p_addr)
                     reply = player_num
-                    print("player number: ", player_num)
+                    print("player number:", player_num)
 
                     # Both of these checks will not allow player to join the game.
                     # if isGameInProgress:
@@ -128,7 +129,11 @@ def threaded_client(p_conn, p_addr):
 
                 elif data == PLAYER_DISCONNECT:
                     # todo: remove them in clients, decrement player count
-                    delete_client_from_list(p_conn, p_addr)
+                    delete_client_from_list(p_addr)
+
+                elif data == REMAINING_GAMETIME:
+                    reply = remaining_game_time
+                    broadcast(reply)
 
                 p_conn.sendall(pickle.dumps(reply))
 
@@ -140,31 +145,32 @@ def threaded_client(p_conn, p_addr):
 
 
 def reset_timer():
-    global timer_running, timer
-    timer_running = False
+    global is_timer_running, timer
+    is_timer_running = False
     if timer is not None and timer.is_alive():
         timer.cancel()
 
 
 def start_timer():
-    global timer_running, timer
-    timer_running = True
+    global is_timer_running, timer
+    is_timer_running = True
     game_duration = datetime.datetime.strptime(time.strftime("%H:%M:%S"), "%H:%M:%S") + \
                     datetime.timedelta(0, TOTAL_GAME_TIME_IN_SECONDS + 1)
 
     def display(msg):
+        global remaining_game_time
         remaining_seconds = int(
             (game_duration - datetime.datetime.strptime(time.strftime("%H:%M:%S"), "%H:%M:%S")).total_seconds())
-        message = msg + " " + str(remaining_seconds)
+        message = msg + str(remaining_seconds) + "s"
         print(message)
-        # conn.sendall(pickle.dumps(message))
+        remaining_game_time = message
 
     class RepeatTimer(Timer):
         def run(self):
             while not self.finished.wait(self.interval):
                 self.function(*self.args, **self.kwargs)
 
-    timer = RepeatTimer(1, display, ["Repeating"])
+    timer = RepeatTimer(1, display, [REMAINING_TIME_MSG])
     timer.start()
     print("Threading started")
     time.sleep(TOTAL_GAME_TIME_IN_SECONDS + 2)  # Let the timer "run" for the duration of the game until it reaches '0'
@@ -173,19 +179,19 @@ def start_timer():
 
 
 while True:
-    conn, addr = s.accept()
+    connection, address = s.accept()
     avail_spots = len(free_clients_indices)
 
-    if not timer_running:
+    if not is_timer_running:
         start_new_thread(start_timer, ())
 
     """START PHASE"""
     # Server begins the game
-    if game_running is True:
+    if is_game_running is True:
         # if not timer_running:
         #     start_timer()
         if avail_spots < 2:
-            game_running = False
+            is_game_running = False
             # reset_timer()  # reset the timer
     else:  # Game is not running as the flag is false; reset the timer
         # reset_timer()
@@ -193,12 +199,12 @@ while True:
 
     """READY PHASE"""
     # player_ready is True when at least one player is connected (initiated the map)
-    if players_ready is False:
+    if are_players_ready is False:
         print("Starting new game...\nGenerating new map...")
         board = Board(Util.TILEWIDTH, Util.TILEHEIGHT)
         board.initialize_board()
         reset_timer()
         # When the first player 'starts' the game, other players just need to join (map generates once)
-        players_ready = True
+        are_players_ready = True
 
-    start_new_thread(threaded_client, (conn, addr))
+    start_new_thread(threaded_client, (connection, address))
