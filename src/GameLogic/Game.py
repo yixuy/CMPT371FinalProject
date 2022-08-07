@@ -21,12 +21,13 @@ class Game():
         # draw the wall
         for row in range(0, int(TILEWIDTH)):
             for col in range(0, int(TILEHEIGHT)):
+                tile = None
                 if (self.board[row][col] == -1):
                     tile = Tile(self, row, col, -1)
-                    self.grid[row][col] = tile
                 else:
                     tile = Tile(self, row, col, 0)
-                    self.grid[row][col] = tile
+                self.grid[row][col] = tile
+
         self.player = Player(self, 0, 0, 1)
 
     def start_game(self):
