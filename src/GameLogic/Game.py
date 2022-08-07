@@ -92,12 +92,3 @@ class Game():
                         self.update_tile(curr_x, curr_y, colour_index)
 
 
-
-
-board_test = Board(int(TILEWIDTH), int(TILEHEIGHT))
-board_test.initialize_board()
-g = Game(board_test)
-
-# while True:
-#     g.game_screen()
-#     g.start_game()
