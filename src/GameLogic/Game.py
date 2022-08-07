@@ -90,5 +90,3 @@ class Game():
                         self.player.move(dy=1)
                         self.board_obj.change_tile(curr_x,curr_y,colour_index)
                         self.update_tile(curr_x, curr_y, colour_index)
-
-
