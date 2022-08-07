@@ -60,20 +60,19 @@ def main(network, p):
                     if event.type == pygame.KEYDOWN:
                         if event.key == pygame.K_SPACE:
                             isGameStart = n.send(GAME_PREPSTART)
-
                             if isGameStart == GAME_START:
                                 print("GAME CAN START...")
-                                g.game_screen()
-                                g.start_game()
                                 gameStart = True
                                 gameStartPrep = False
 
-
-            '''START PHASE (for client)'''
+            '''GAME PHASE (for client)'''
             # Actual Gameplay Logic
             if gameStart is True:
-                # play the game like normal
-                game = n.send(GAME_PLAY)
+                g.game_screen()
+                while True:
+                    g.input_dir(network, player_num)
+                    g.update()
+                    g.draw()
 
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
@@ -86,8 +85,6 @@ def main(network, p):
             run = False
             print("Couldn't get game")
             break
-
-        # run = False
 
 
 def menu_screen():

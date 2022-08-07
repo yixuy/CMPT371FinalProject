@@ -5,11 +5,6 @@ import pickle
 from GameLogic.Board import Board
 import GameLogic.Util as Util
 from NetworkUtils import *
-
-
-server = IPADDRESS
-port = PORTNUMBER
-
 MAX_PLAYERS = 4
 playerCount = 0
 gameOn = False
@@ -24,7 +19,7 @@ s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
 
 try:
-    s.bind((server, port))
+    s.bind((IPADDRESS, PORTNUMBER))
 except socket.error as e:
     str(e)
 
@@ -91,6 +86,7 @@ def threaded_client(p_conn, p_addr):
         reply = ""
         try:
             data = p_conn.recv(4096).decode()
+            print(data)
             if not data:
                 break
             else:
