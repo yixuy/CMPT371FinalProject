@@ -9,8 +9,6 @@ import GameLogic.Util as Util
 from GameLogic.Board import Board
 from NetworkUtils import *
 
-server = IPADDRESS
-port = PORTNUMBER
 
 MAX_PLAYERS = 4
 player_count = 0
@@ -28,7 +26,7 @@ timer = None
 s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
 try:
-    s.bind((server, port))
+    s.bind((IPADDRESS, PORTNUMBER))
 except socket.error as e:
     str(e)
 
@@ -81,13 +79,13 @@ def broadcast(msg):
 
 def threaded_client(p_conn, p_addr):
     print("SERVER: In threaded_client thread")
-
     while True:
         p_count = MAX_PLAYERS - len(free_clients_indices)
         print(" ----------- PCOUNT: ", p_count)
         reply = ""
         try:
             data = p_conn.recv(4096).decode()
+            print(data)
             if not data:
                 break
             else:
@@ -102,19 +100,18 @@ def threaded_client(p_conn, p_addr):
 
                 elif data == GAME_PREPSTART:
                     print("Server: Preparing to start the game.")
-                    # TODO: check if game can actually start, it should broadcast to all clients at the same time
+                    # TODO: check if game can actually start,
                     #  it should broadcast to all clients at the same time
                     if p_count >= 2:
                         reply = GAME_START
                         broadcast(reply)
-                        break
+                        continue
                     else:
                         reply = 'Game requires minimum of 2 players.'
 
                 elif data == GAME_PLAY:
                     # normal game info passing
                     pass
-
 
                 elif data == PLAYER_JOIN:
                     print("data: new player has joined.")

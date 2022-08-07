@@ -1,12 +1,12 @@
+from NetworkUtils import GAME_PLAY
+import pygame as pg
 import sys
-
-from .Board import *
-from .Player import *
 from .Wall import *
-
-
+from .Player import *
+from .Util import *
+from .Board import * 
 # Reference: https://www.youtube.com/watch?v=3UxnelT9aCo
-class Game:
+class Game():
     def __init__(self, board):
         pg.init()
         self.screen = pg.display.set_mode((WIDTH, HEIGHT))
@@ -23,12 +23,12 @@ class Game:
         # draw the wall
         for row in range(0, int(TILEWIDTH)):
             for col in range(0, int(TILEHEIGHT)):
-                if self.board[row][col] == -1:
+                if (self.board[row][col] == -1):
                     Wall(self, row, col)
 
     def start_game(self):
         while True:
-            self.dt = self.clock.tick(FPS) / 1000
+            self.dt = self.clock.tick(FPS) / 10
             self.input_dir()
             self.update()
             self.draw()
@@ -52,7 +52,8 @@ class Game:
         self.all_sprites.draw(self.screen)
         pg.display.flip()
 
-    def input_dir(self):
+    def input_dir(self, network, player):
+        msg = GAME_PLAY + ";" + str(player) + ";"
         for event in pg.event.get():
             if event.type == pg.QUIT:
                 self.quit()
@@ -61,26 +62,30 @@ class Game:
                 curr_y = self.player.get_y()
                 if event.key == pg.K_ESCAPE:
                     self.quit()
-                if event.key == pg.K_LEFT:
-                    if self.board[curr_x - 1][curr_y] != -1:
+                elif event.key == pg.K_LEFT:
+                    if curr_x >= 1 and self.board[curr_x - 1][curr_y] == 0:
                         self.player.move(dx=-1)
-                if event.key == pg.K_RIGHT:
-                    if curr_x + 1 < TILEWIDTH and self.board[curr_x + 1][curr_y] != -1:
+                        msg = msg + LEFT
+                        network.send(msg)
+                        return
+                    
+                elif event.key == pg.K_RIGHT:
+                    if curr_x + 1 < TILEWIDTH and self.board[curr_x + 1][curr_y] == 0:
                         self.player.move(dx=1)
-                if event.key == pg.K_UP:
-                    if self.board[curr_x][curr_y - 1] != -1:
+                        msg = msg + RIGHT
+                        network.send(msg)
+                        return
+                elif event.key == pg.K_UP:
+                    if curr_y >= 1 and self.board[curr_x][curr_y - 1] == 0:
                         self.player.move(dy=-1)
-                if event.key == pg.K_DOWN:
-                    if curr_y + 1 < TILEHEIGHT and self.board[curr_x][curr_y + 1] != -1:
+                        msg = msg + UP
+                        network.send(msg)
+                        return
+                        
+                elif event.key == pg.K_DOWN:
+                    if curr_y + 1 < TILEHEIGHT and self.board[curr_x][curr_y + 1] == 0:
                         self.player.move(dy=1)
-
-
-board = Board(int(TILEWIDTH), int(TILEHEIGHT))
-board.initialize_board()
-board = board.get_board()
-print(board)
-# g = Game(board)
-
-# while True:
-#     g.game_screen()
-#     g.start_game()
+                        msg = msg + DOWN
+                        network.send(msg)
+                        return
+        
