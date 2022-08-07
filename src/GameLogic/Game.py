@@ -17,7 +17,6 @@ class Game():
 
     def game_screen(self):
         self.all_sprites = pg.sprite.Group()
-
         # draw the wall
         for row in range(0, int(TILEWIDTH)):
             for col in range(0, int(TILEHEIGHT)):
@@ -29,7 +28,6 @@ class Game():
                 self.grid[row][col] = tile
 
         self.player = Player(self, 0, 0, 1)
-
     def start_game(self):
         while True:
             self.dt = self.clock.tick(FPS) / 1000
@@ -91,3 +89,11 @@ class Game():
                         self.player.move(dy=1)
                         self.board_obj.change_tile(curr_x,curr_y,colour_index)
                         self.update_tile(curr_x, curr_y, colour_index)
+
+# board_test = Board(int(TILEWIDTH), int(TILEHEIGHT))
+# board_test.initialize_board()
+# g = Game(board_test)
+#
+# while True:
+#     g.game_screen()
+#     g.start_game()
