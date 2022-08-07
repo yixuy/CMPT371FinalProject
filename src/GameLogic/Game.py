@@ -4,7 +4,9 @@ import sys
 from .Wall import *
 from .Player import *
 from .Util import *
-from .Board import * 
+from .Board import *
+
+
 # Reference: https://www.youtube.com/watch?v=3UxnelT9aCo
 class Game():
     def __init__(self, board):
@@ -68,7 +70,7 @@ class Game():
                         msg = msg + LEFT
                         network.send(msg)
                         return
-                    
+
                 elif event.key == pg.K_RIGHT:
                     if curr_x + 1 < TILEWIDTH and self.board[curr_x + 1][curr_y] == 0:
                         self.player.move(dx=1)
@@ -81,11 +83,10 @@ class Game():
                         msg = msg + UP
                         network.send(msg)
                         return
-                        
+
                 elif event.key == pg.K_DOWN:
                     if curr_y + 1 < TILEHEIGHT and self.board[curr_x][curr_y + 1] == 0:
                         self.player.move(dy=1)
                         msg = msg + DOWN
                         network.send(msg)
                         return
-        
