@@ -26,6 +26,13 @@ class Network:
         except socket.error as e:
             print("Error [Network.py]: ", e)
 
+    def recv(self):
+        try:
+            return pickle.loads(self.client.recv(2048*2))
+        except:
+            # pass # Do nothing
+            return None
+
     def disconnect(self):
         try:
             self.client.close()

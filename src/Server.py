@@ -16,6 +16,7 @@ clients = [None] * len(free_clients_indices)
 
 
 s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
 
 try:
     s.bind((IPADDRESS, PORTNUMBER))
@@ -39,23 +40,30 @@ Server:
 '''
 
 
-def add_client_to_list(conn, addr):
+def add_client_to_list(p_conn, p_addr):
     print("Server: using add_client_to_list()")
     # clients format: [ [conn, ip, port], [conn, ip, port], etc ],
     # Note: clients indices are kept the same (even when removed)
+
+    # This is to check if client is already connected (to counter the potential bugs on client side)
+    conn_item_list = [[p_conn, p_addr[0], p_addr[1]]]
+    check = any(True for i in clients if i in conn_item_list)
+    if check:
+        return -1
+
     if len(free_clients_indices) > 0:
         free_clients_indices.sort()  # so the smallest player number is preferred
         to_use_i = free_clients_indices.pop(0)
-        clients[to_use_i] = [conn, addr[0], addr[1]]
+        clients[to_use_i] = [p_conn, p_addr[0], p_addr[1]]
         player_num = to_use_i + 1  # bcs indices start from 0
         return player_num
     return None
 
 
-def delete_client_from_list(conn, addr):
+def delete_client_from_list(p_conn, p_addr):
     try:
         for x in range(0, len(clients)):
-            if clients[x][1] == addr[0] and clients[x][1] == addr[1]:
+            if clients[x][1] == p_addr[0] and clients[x][1] == p_addr[1]:
                 clients[x] = None
                 free_clients_indices.append(x)
     except:
@@ -71,6 +79,7 @@ def broadcast(msg):
 
 def threaded_client(p_conn, p_addr):
     print("SERVER: In threaded_client thread")
+    player_num = 0
     while True:
         p_count = MAX_PLAYERS - len(free_clients_indices)
         print(" ----------- PCOUNT: ", p_count)
@@ -84,6 +93,7 @@ def threaded_client(p_conn, p_addr):
                 # reset the game
                 if data == GAME_RESET:
                     print("data: 'reset' ")
+                    reply = "Game reset"
 
                 # do the tile checking
                 elif data == GET_BOARD:
@@ -92,8 +102,6 @@ def threaded_client(p_conn, p_addr):
 
                 elif data == GAME_PREPSTART:
                     print("Server: Preparing to start the game.")
-                    # TODO: check if game can actually start,
-                    #  it should broadcast to all clients at the same time
                     if p_count >= 2:
                         reply = GAME_START
                         broadcast(reply)
@@ -103,11 +111,14 @@ def threaded_client(p_conn, p_addr):
 
                 elif data == GAME_PLAY:
                     # normal game info passing
-                    pass
+                    print("data: in game_play")
+                    reply = "hello world"
 
                 elif data == PLAYER_JOIN:
                     print("data: new player has joined.")
                     player_num = add_client_to_list(p_conn, p_addr)
+                    if player_num == -1:
+                        break
                     reply = player_num
                     print("player number: ", player_num)
 
@@ -121,6 +132,7 @@ def threaded_client(p_conn, p_addr):
 
                 elif data == PLAYER_DISCONNECT:
                     # todo: remove them in clients, decrement player count
+                    print("A client has disconnected.")
                     delete_client_from_list(p_conn, p_addr)
 
                 p_conn.sendall(pickle.dumps(reply))
@@ -128,7 +140,7 @@ def threaded_client(p_conn, p_addr):
         except:
             break
 
-    print("conn.close()")
+    print("[Player %s] - conn.close()" % player_num)
     p_conn.close()
 
 
