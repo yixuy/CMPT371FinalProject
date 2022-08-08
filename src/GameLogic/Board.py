@@ -69,6 +69,9 @@ class Board:
     def get_item(self, x, y):
         return self.board[x][y]
 
+    def set_cell_colour_number(self,x,y,num):
+        self.board[x][y] = num
+
     def initialize_board(self):
         self.board = [[0 for i in range(self.columns)] for j in range(self.rows)]
         n_walls = int(self.columns * self.rows * 0.3)
@@ -89,3 +92,9 @@ class Board:
 
     def print_board(self):
         print('\n'.join(' '.join('{0: ^3}'.format(str(i)) for i in row) for row in self.board))
+
+    # Called by Server
+    def change_tile(self,x, y, colour_index):
+        target = self.get_item(x,y)
+        if(target == 0):
+            self.set_cell_colour_number(x,y,colour_index)
