@@ -9,7 +9,6 @@ import GameLogic.Util as Util
 from GameLogic.Board import Board
 from NetworkUtils import *
 
-MAX_PLAYERS = 4
 player_count = 0
 are_players_ready = False
 is_game_running = False
@@ -18,8 +17,6 @@ board = None
 free_clients_indices = [0, 1, 2, 3]
 clients = [None] * len(free_clients_indices)
 
-TOTAL_GAME_TIME_IN_SECONDS = 30
-REMAINING_TIME_MSG = "Remaining Time: "
 timer = None
 is_timer_running = False
 remaining_game_time = REMAINING_TIME_MSG + str(TOTAL_GAME_TIME_IN_SECONDS) + "s"
@@ -133,7 +130,6 @@ def threaded_client(p_conn, p_addr):
 
                 elif data == REMAINING_GAMETIME:
                     reply = remaining_game_time
-                    broadcast(reply)
 
                 p_conn.sendall(pickle.dumps(reply))
 
@@ -172,9 +168,7 @@ def start_timer():
 
     timer = RepeatTimer(1, display, [REMAINING_TIME_MSG])
     timer.start()
-    print("Threading started")
     time.sleep(TOTAL_GAME_TIME_IN_SECONDS + 2)  # Let the timer "run" for the duration of the game until it reaches '0'
-    print("Threading finishing")
     timer.cancel()
 
 

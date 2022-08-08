@@ -28,7 +28,7 @@ def main(network, p):
     is_game_ready = True
     is_game_starting = False
     is_game_running = False
-    show_score = False
+    display_score = False
     g = None
 
     while run:
@@ -69,17 +69,17 @@ def main(network, p):
                 while True:
                     if update_counter % 60 == 0:
                         remaining_game_time = n.send(REMAINING_GAMETIME)
-                        if remaining_game_time == "Remaining Time: 0s" or \
-                                remaining_game_time == "Remaining Time: -1s":
+                        if remaining_game_time == REMAINING_TIME_MSG + "0s" or \
+                                remaining_game_time == REMAINING_TIME_MSG + "-1s":  # Added as a safeguard
                             is_game_running = False
-                            show_score = True
+                            display_score = True
                             break
                     g.input_dir(network, player_num)
                     g.update()
                     g.draw()
                     update_counter += 1
 
-            if show_score is True:
+            if display_score is True:
                 # TODO: implement score displaying logic
                 win.fill((100, 100, 200))
                 font = pygame.font.SysFont("comicsans", 60)
