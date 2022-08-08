@@ -60,7 +60,6 @@ class Game():
         tile.set_colour(colour_index)
 
 
-    def input_dir(self):
     def input_dir(self, network, player):
         msg = GAME_PLAY + ";" + str(player) + ";"
         for event in pg.event.get():
@@ -73,42 +72,42 @@ class Game():
                 if event.key == pg.K_ESCAPE:
                     self.quit()
                 elif event.key == pg.K_LEFT:
-                    if curr_x >= 1 and self.board[curr_x - 1][curr_y] == 0:
-                        self.player.move(dx=-1)
-                        self.board_obj.change_tile(curr_x,curr_y,colour_index)
-                        self.update_tile(curr_x,curr_y,colour_index)
-                if event.key == pg.K_RIGHT:
-                    if curr_x + 1 < TILEWIDTH and self.board[curr_x + 1][curr_y] != -1:
+                    if curr_x + 1 < TILEWIDTH and self.board[curr_x-1][curr_y] != -1:
                         msg = msg + LEFT
                         network.send(msg)
                         return
-
+                    # if curr_x >= 1 and self.board[curr_x - 1][curr_y] == 0:
+                    #     self.player.move(dx=-1)
+                    #     self.board_obj.change_tile(curr_x,curr_y,colour_index)
+                    #     self.update_tile(curr_x,curr_y,colour_index)
                 elif event.key == pg.K_RIGHT:
-                    if curr_x + 1 < TILEWIDTH and self.board[curr_x + 1][curr_y] == 0:
-                        self.player.move(dx=1)
-                        self.board_obj.change_tile(curr_x,curr_y,colour_index)
-                        self.update_tile(curr_x, curr_y, colour_index)
-                if event.key == pg.K_UP:
-                    if self.board[curr_x][curr_y - 1] != -1:
+                    if curr_x + 1 < TILEWIDTH and self.board[curr_x + 1][curr_y] != -1:
                         msg = msg + RIGHT
                         network.send(msg)
                         return
+                    # if curr_x + 1 < TILEWIDTH and self.board[curr_x + 1][curr_y] == 0:
+                    #     self.player.move(dx=1)
+                    #     self.board_obj.change_tile(curr_x,curr_y,colour_index)
+                    #     self.update_tile(curr_x, curr_y, colour_index)
+
                 elif event.key == pg.K_UP:
-                    if curr_y >= 1 and self.board[curr_x][curr_y - 1] == 0:
-                        self.player.move(dy=-1)
-                        self.board_obj.change_tile(curr_x,curr_y,colour_index)
-                        self.update_tile(curr_x, curr_y, colour_index)
-                if event.key == pg.K_DOWN:
-                    if curr_y + 1 < TILEHEIGHT and self.board[curr_x][curr_y + 1] != -1:
+                    if curr_y >= 1 and self.board[curr_x][curr_y - 1] != -1:
                         msg = msg + UP
                         network.send(msg)
                         return
-
+                    # if curr_y >= 1 and self.board[curr_x][curr_y - 1] == 0:
+                    #     self.player.move(dy=-1)
+                    #     self.board_obj.change_tile(curr_x,curr_y,colour_index)
+                    #     self.update_tile(curr_x, curr_y, colour_index)
                 elif event.key == pg.K_DOWN:
-                    if curr_y + 1 < TILEHEIGHT and self.board[curr_x][curr_y + 1] == 0:
-                        self.player.move(dy=1)
-                        self.board_obj.change_tile(curr_x,curr_y,colour_index)
-                        self.update_tile(curr_x, curr_y, colour_index)
+                    if curr_y + 1 < TILEHEIGHT and self.board[curr_x][curr_y + 1] != -1:
+                        msg = msg + DOWN
+                        network.send(msg)
+                        return
+                    # if curr_y + 1 < TILEHEIGHT and self.board[curr_x][curr_y + 1] == 0:
+                    #     self.player.move(dy=1)
+                    #     self.board_obj.change_tile(curr_x,curr_y,colour_index)
+                    #     self.update_tile(curr_x, curr_y, colour_index)
 
 # board_test = Board(int(TILEWIDTH), int(TILEHEIGHT))
 # board_test.initialize_board()
@@ -117,7 +116,4 @@ class Game():
 # while True:
 #     g.game_screen()
 #     g.start_game()
-                        msg = msg + DOWN
-                        network.send(msg)
-                        return
 
