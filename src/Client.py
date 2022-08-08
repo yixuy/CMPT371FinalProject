@@ -3,9 +3,12 @@ import pygame
 
 from Network import Network
 from NetworkUtils import *
+import sys
+
 from GameLogic.Game import Game
 
 pygame.font.init()
+
 win = pygame.display.set_mode((WIDTH, HEIGHT))
 pygame.display.set_caption("Client")
 
@@ -40,26 +43,30 @@ def main(network, p):
             if is_game_ready is True:
                 # Get the board once from the server
                 board = n.send(GET_BOARD)
+
                 # Generate the Game object with the game map
                 if board:
                     g = Game(board.get_board())
 
                     win.fill((100, 100, 200))
-                    font = pygame.font.SysFont("comicsans", 60)
-                    text = font.render("Player is Ready!\nPress to Start", True, (255, 0, 0))
-                    win.blit(text, (100, 200))
+                    font = pygame.font.SysFont("comicsans", 37)
+                    text = font.render("Player is Ready!", True, (255, 0, 0))
+                    text2 = font.render("Press Space to start game!", True, (255, 0, 0))
+                    win.blit(text, (15, 150))
+                    win.blit(text2, (15, 230))
                     pygame.display.flip()
                     is_game_ready = False
                     is_game_starting = True
 
             if is_game_starting is True:
                 for event in pygame.event.get():
-                    if event.type == pygame.MOUSEBUTTONDOWN:
-                        start_game = n.send(GAME_PREPSTART)
-                        if start_game == GAME_START:
-                            print("GAME CAN START...")
-                            is_game_running = True
-                            is_game_starting = False
+                    if event.type == pygame.KEYDOWN:
+                        if event.key == pygame.K_SPACE:
+                            start_game = n.send(GAME_PREPSTART)
+                            if start_game == GAME_START:
+                                print("GAME CAN START...")
+                                is_game_running = True
+                                is_game_starting = False
 
             '''GAME PHASE (for client)'''
             # Actual Gameplay Logic
@@ -78,7 +85,7 @@ def main(network, p):
                     g.update()
                     g.draw()
                     update_counter += 1
-
+            
             if display_score is True:
                 # TODO: implement score displaying logic
                 win.fill((100, 100, 200))
@@ -86,14 +93,17 @@ def main(network, p):
                 text = font.render("Game Over!", True, (255, 0, 0))
                 win.blit(text, (100, 200))
                 pygame.display.flip()
+
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    run = False
+                    msg = n.send(PLAYER_DISCONNECT)
+                    pygame.quit()
+                    sys.exit()
+
         except:
             run = False
             print("Couldn't get game")
-
-        for event in pygame.event.get():
-            if event.type == pygame.QUIT:
-                run = False
-                pygame.quit()
 
 
 def menu_screen():
@@ -102,40 +112,39 @@ def menu_screen():
     n = Network()
 
     win.fill((128, 128, 128))
-    font = pygame.font.SysFont("comicsans", 60)
-    text = font.render("Click to Play!", True, (255, 0, 0))
-    win.blit(text, (100, 200))
-    pygame.display.update()
+    font = pygame.font.SysFont("comicsans", 50)
+    text = font.render("Press Space to Play!", True, (255, 0, 0))
+    win.blit(text, (20, 200))
+    pygame.display.flip()
 
     while run:
         clock.tick(60)  # Makes the client game run in 60fps
 
         for event in pygame.event.get():
+            if event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_SPACE:
+                    print("button pressed - ready")
+                    run = False
+                    n.connect()
+                    new_game = n.send(PLAYER_JOIN)
+                    print("new game received: ", new_game)
+                    if new_game == GAME_FULL or new_game == GAME_IN_PROGRESS:
+                        print("Game is either full or in progress...\nClosing client connection...")
+                        n.disconnect()
+                        pygame.quit()
+                    else:
+                        n.set_player_num(new_game)
+                        # UI
+                        win.fill((200, 200, 128))
+                        font = pygame.font.SysFont("comicsans", 45)
+                        text = font.render("Player Getting Ready...", True, (255, 0, 0))
+                        win.blit(text, (20, 200))
+                        pygame.display.update()
             if event.type == pygame.QUIT:
                 print("quitting game...")
                 pygame.quit()
                 run = False
-            if event.type == pygame.MOUSEBUTTONDOWN:
-                print("button pressed - ready")
-                run = False
-                p1 = n.connect()
-                print("p1: ", p1)
-                new_game = n.send(PLAYER_JOIN)
-                print("new game received: ", new_game)
-                if new_game == GAME_FULL or new_game == GAME_IN_PROGRESS:
-                    print("Game is either full or in progress...\nClosing client connection...")
-                    n.disconnect()
-                    pygame.quit()
-                    run = False
-                else:
-                    n.set_player_num(new_game)
 
-                # UI
-                win.fill((200, 200, 128))
-                font = pygame.font.SysFont("comicsans", 60)
-                text = font.render("Player READY", True, (255, 0, 0))
-                win.blit(text, (100, 200))
-                pygame.display.update()
 
     main(n, n.get_player_num())
 
