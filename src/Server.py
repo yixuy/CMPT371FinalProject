@@ -6,13 +6,14 @@ from GameLogic.Board import Board
 import GameLogic.Util as Util
 from NetworkUtils import *
 MAX_PLAYERS = 4
-playerCount = 0
+player_count = 0
 gameOn = False
 gameStart = False
 board = None
 
 free_clients_indices = [0, 1, 2, 3]
 clients = [None] * len(free_clients_indices)
+
 
 
 s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -41,6 +42,7 @@ Server:
 
 
 def add_client_to_list(p_conn, p_addr):
+    global player_count
     print("Server: using add_client_to_list()")
     # clients format: [ [conn, ip, port], [conn, ip, port], etc ],
     # Note: clients indices are kept the same (even when removed)
@@ -52,6 +54,7 @@ def add_client_to_list(p_conn, p_addr):
         return -1
 
     if len(free_clients_indices) > 0:
+        player_count += 1
         free_clients_indices.sort()  # so the smallest player number is preferred
         to_use_i = free_clients_indices.pop(0)
         clients[to_use_i] = [p_conn, p_addr[0], p_addr[1]]
@@ -61,17 +64,22 @@ def add_client_to_list(p_conn, p_addr):
 
 
 def delete_client_from_list(p_conn, p_addr):
+    global player_count
     try:
         for x in range(0, len(clients)):
             if clients[x][1] == p_addr[0] and clients[x][1] == p_addr[1]:
                 clients[x] = None
                 free_clients_indices.append(x)
+                player_count -= 1
     except:
         pass
 
 
 def broadcast(msg):
+    # print("In broadcast()")
     for client in clients:
+        # print("---- client: ", client)
+        print("broadcasting ", client[0])
         if client is not None:
             my_conn = client[0]
             my_conn.send(pickle.dumps(msg))
@@ -82,7 +90,8 @@ def threaded_client(p_conn, p_addr):
     player_num = 0
     while True:
         p_count = MAX_PLAYERS - len(free_clients_indices)
-        print(" ----------- PCOUNT: ", p_count)
+        print(" ----------- PCOUNT: ", p_count)   # Does not work properly sometimes
+        print(" ----------- player_count: ", player_count)
         reply = ""
         try:
             data = p_conn.recv(4096).decode()
@@ -102,7 +111,9 @@ def threaded_client(p_conn, p_addr):
 
                 elif data == GAME_PREPSTART:
                     print("Server: Preparing to start the game.")
-                    if p_count >= 2:
+                    print("Current p_count: ", p_count)
+                    if player_count >= 2:
+                        print("Server: Initiating GAME_START")
                         reply = GAME_START
                         broadcast(reply)
                         continue
@@ -118,10 +129,10 @@ def threaded_client(p_conn, p_addr):
                     print("data: new player has joined.")
                     player_num = add_client_to_list(p_conn, p_addr)
                     if player_num == -1:
+                        print("player could not join.")
                         break
                     reply = player_num
                     print("player number: ", player_num)
-
 
                     # Both of these checks will not allow player to join the game.
                     # if isGameInProgress:
@@ -129,6 +140,13 @@ def threaded_client(p_conn, p_addr):
                     if player_num is None:
                         reply = "GameFull"
                         print("-----------   Game is full")
+
+                elif data == 'GamePlay;2;UP' or data == 'GamePlay;2;DOWN' or data == 'GamePlay;2;RIGHT' or data == 'GamePlay;2;LEFT':
+                    reply = TESTING_PURPOSES+'2'
+                    # broadcast(reply)
+                    # continue
+                elif data == 'GamePlay;1;UP' or data == 'GamePlay;1;DOWN' or data == 'GamePlay;1;RIGHT' or data == 'GamePlay;1;LEFT':
+                    reply = TESTING_PURPOSES+'1'
 
                 elif data == PLAYER_DISCONNECT:
                     # todo: remove them in clients, decrement player count
@@ -138,7 +156,7 @@ def threaded_client(p_conn, p_addr):
                 p_conn.sendall(pickle.dumps(reply))
 
         except:
-            break
+            continue
 
     print("[Player %s] - conn.close()" % player_num)
     p_conn.close()

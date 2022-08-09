@@ -1,5 +1,7 @@
+import errno
 import socket
 import pickle
+import sys
 from NetworkUtils import IPADDRESS, PORTNUMBER
 
 
@@ -18,6 +20,13 @@ class Network:
         except:
             pass
 
+    def send_only(self, data):
+        try:
+            self.client.send(data.encode())
+            return
+        except socket.error as e:
+            print("Error [Network.py]: ", e)
+
     # When sending to Server, it will also hear back from the server
     def send(self, data):
         try:
@@ -32,6 +41,14 @@ class Network:
         except:
             # pass # Do nothing
             return None
+        # except IOError as e:
+        #     if e.errno != errno.EAGAIN and e.errno != errno.EWOULDBLOCK:
+        #         print('Reading error: {}'.format(e.errno))
+        #         sys.exit()
+        #     pass
+        # except Exception as e:
+        #     print('Reading error: {}'.format(str(e)))
+        #     sys.exit()
 
     def disconnect(self):
         try:

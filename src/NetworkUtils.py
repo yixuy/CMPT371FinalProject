@@ -9,6 +9,8 @@ GAME_FULL = 'GameFull'
 GAME_IN_PROGRESS = 'GameInProgress'
 PLAYER_DISCONNECT = 'PlayerDisconnect'
 
+TESTING_PURPOSES = 'TestingPurposes'
+
 IPADDRESS = 'localhost'
 PORTNUMBER = 50000
 
