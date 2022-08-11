@@ -5,14 +5,8 @@ from .Player import *
 from .Board import *
 from .Tile import *
 # Reference: https://www.youtube.com/watch?v=3UxnelT9aCo
-def close_game(network):
-    network.send_only({"code": PLAYER_DISCONNECT})
-    network.disconnect()
-    pg.quit()
-    sys.exit()
 
-
-class Game():
+class Game:
     def __init__(self):
         pg.init()
         self.screen = pg.display.set_mode((WIDTH, HEIGHT))
@@ -82,57 +76,45 @@ class Game():
         return self.board
 
     def input_dir(self, network, player):
-        try:
-            msg = {
-                    "code": GAME_PLAY,
-                    "player": str(player),
-                    "x": self.player.get_x(),
-                    "y": self.player.get_y()
-                   }
-            for event in pg.event.get():
-                if event.type == pg.QUIT:
+        msg = {
+                "code": GAME_PLAY,
+                "player": str(player),
+                "x": self.player.get_x(),
+                "y": self.player.get_y()
+               }
+        for event in pg.event.get():
+            if event.type == pg.QUIT:
+                network.send_only({"code": PLAYER_DISCONNECT})
+                self.quit()
+            if event.type == pg.KEYDOWN:
+                curr_x = self.player.get_x()
+                curr_y = self.player.get_y()
+                colour_index = self.player.get_colour_index()
+
+                if event.key == pg.K_ESCAPE:
                     network.send_only({"code": PLAYER_DISCONNECT})
                     self.quit()
-                if event.type == pg.KEYDOWN:
-                    curr_x = self.player.get_x()
-                    curr_y = self.player.get_y()
-                    colour_index = self.player.get_colour_index()
-
-                    if event.key == pg.K_ESCAPE:
-                        network.send_only({"code": PLAYER_DISCONNECT})
-                        self.quit()
-                    elif event.key == pg.K_LEFT:
-                        if curr_x >= 1 and self.board[curr_x - 1][curr_y] != -1:
-                            self.player.move(dx=-1)
-                            msg["move"] = LEFT
-                            network.send_only(msg)
-                            return
-                    elif event.key == pg.K_RIGHT:
-                        if curr_x + 1 < TILEWIDTH and self.board[curr_x + 1][curr_y] != -1:
-                            self.player.move(dx=1)
-                            msg["move"] = RIGHT
-                            network.send_only(msg)
-                            return
-                    elif event.key == pg.K_UP:
-                        if curr_y >= 1 and self.board[curr_x][curr_y - 1] != -1:
-                            self.player.move(dy=-1)
-                            msg["move"] = UP
-                            network.send_only(msg)
-                    elif event.key == pg.K_DOWN:
-                        if curr_y + 1 < TILEHEIGHT and self.board[curr_x][curr_y + 1] != -1:
-                            self.player.move(dy=1)
-                            msg["move"] = DOWN
-                            network.send_only(msg)
-                            return
-        except:
-            pass
-        # except KeyboardInterrupt:
-        #     print("[Game.py] KeyboardInterrupt...")
-        #     network.send_only({"code": PLAYER_DISCONNECT})
-        #     # network.disconnect()
-        #     close_game(network)
-        #
-        # except IOError as e:
-        #     if e.errno == errno.EPIPE:
-        #         close_game(network)
+                elif event.key == pg.K_LEFT:
+                    if curr_x >= 1 and self.board[curr_x - 1][curr_y] != -1:
+                        self.player.move(dx=-1)
+                        msg["move"] = LEFT
+                        network.send_only(msg)
+                        return
+                elif event.key == pg.K_RIGHT:
+                    if curr_x + 1 < TILEWIDTH and self.board[curr_x + 1][curr_y] != -1:
+                        self.player.move(dx=1)
+                        msg["move"] = RIGHT
+                        network.send_only(msg)
+                        return
+                elif event.key == pg.K_UP:
+                    if curr_y >= 1 and self.board[curr_x][curr_y - 1] != -1:
+                        self.player.move(dy=-1)
+                        msg["move"] = UP
+                        network.send_only(msg)
+                elif event.key == pg.K_DOWN:
+                    if curr_y + 1 < TILEHEIGHT and self.board[curr_x][curr_y + 1] != -1:
+                        self.player.move(dy=1)
+                        msg["move"] = DOWN
+                        network.send_only(msg)
+                        return
 
