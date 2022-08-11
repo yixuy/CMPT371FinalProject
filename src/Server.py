@@ -1,13 +1,11 @@
-
-
-import sys
 import socket
 from _thread import *
-# import pickle
-import _pickle as pickle
+import _pickle as pickle   # This is pickle with c implementation (a lot faster) vs python based pickle
 from GameLogic.Board import Board
 import GameLogic.Util as Util
 from NetworkUtils import *
+
+
 MAX_PLAYERS = 4
 player_count = 0
 gameOn = False
@@ -26,9 +24,9 @@ try:
 except socket.error as e:
     str(e)
 
-# queue up as many as 4 connect requests (the normal max) 
+# queue up as many as 4 connect requests (the normal max)
 # before refusing outside connections.
-s.listen(1)  # might need to increase (?)
+s.listen(4)  # Queue up to max 4 requests (in case of burst connections)
 print("Waiting for a connection, Server Started")
 
 '''
