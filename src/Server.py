@@ -1,7 +1,10 @@
+
+
 import sys
 import socket
 from _thread import *
-import pickle
+# import pickle
+import _pickle as pickle
 from GameLogic.Board import Board
 import GameLogic.Util as Util
 from NetworkUtils import *
@@ -13,7 +16,6 @@ board = None
 
 free_clients_indices = [0, 1, 2, 3]
 clients = [None] * len(free_clients_indices)
-
 
 
 s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -44,7 +46,7 @@ Server:
 def add_client_to_list(p_conn, p_addr):
     global player_count
     print("Server: using add_client_to_list()")
-    # clients format: [ [conn, ip, port], [conn, ip, port], etc ],
+    # clients format: [ [conn, ip, port], [conn, ip, port], etc ], etc ]
     # Note: clients indices are kept the same (even when removed)
 
     # This is to check if client is already connected (to counter the potential bugs on client side)
@@ -64,23 +66,31 @@ def add_client_to_list(p_conn, p_addr):
 
 
 def delete_client_from_list(p_conn, p_addr):
+    # clients format: [ [conn, ip, port], [conn, ip, port], etc ], etc ]
     global player_count
     try:
         for x in range(0, len(clients)):
-            if clients[x][1] == p_addr[0] and clients[x][1] == p_addr[1]:
+            print("clients x: ", x)
+            if clients[x] is None:
+                continue
+            if clients[x][0] == p_conn:
                 clients[x] = None
                 free_clients_indices.append(x)
                 player_count -= 1
+                p_conn.close()
+                print("Client deleted successfully! free_clients_indices added back to list: ", x)
+                break
     except:
         pass
 
 
 def broadcast(msg):
+    print("clients: ", clients)
     for client in clients:
-        print("broadcasting ", client[0])
         if client is not None:
             my_conn = client[0]
             my_conn.send(pickle.dumps(msg))
+    print("Finished broadcast()")
 
 
 def threaded_client(p_conn, p_addr):
@@ -88,78 +98,98 @@ def threaded_client(p_conn, p_addr):
     player_num = 0
     while True:
         p_count = MAX_PLAYERS - len(free_clients_indices)
-        print(" ----------- PCOUNT: ", p_count)   # Does not work properly sometimes
-        print(" ----------- player_count: ", player_count)
-        reply = ""
+
+        reply = {}
         try:
-            data = p_conn.recv(4096).decode()
-            print(data)
-            if not data:
+            data = pickle.loads(p_conn.recv(2048))
+
+            if len(data) <= 0:      # Watch out if this break statement causes any unintended problems
+                print("THREAD: message is empty")
+                delete_client_from_list(p_conn, p_addr)
                 break
             else:
+                data_code = data["code"]
+
                 # reset the game
-                if data == GAME_RESET:
+                if data_code == GAME_RESET:
                     print("data: 'reset' ")
-                    reply = "Game reset"
+                    reply["code"] = "Game reset"
 
                 # do the tile checking
-                elif data == GET_BOARD:
-                    print("data: client getting board from server")
-                    reply = board
+                elif data_code == GET_BOARD:
+                    # print("data: client getting board from server")
+                    reply["code"] = BOARD
+                    reply["data"] = board
 
-                elif data == GAME_PREPSTART:
+                elif data_code == GAME_PREPSTART:
                     print("Server: Preparing to start the game.")
-                    print("Current p_count: ", p_count)
                     if player_count >= 2:
                         print("Server: Initiating GAME_START")
-                        reply = GAME_START
+                        reply["code"] = GAME_START
+                        print(reply)
                         broadcast(reply)
                         continue
                     else:
-                        reply = 'Game requires minimum of 2 players.'
+                        reply["code"] = GAME_NOT_ENOUGH_PLAYERS
 
-                elif data == GAME_PLAY:
-                    # normal game info passing
-                    print("data: in game_play")
-                    reply = "hello world"
+                # When player makes a move, server updates the board, and sends back the new board
+                elif data_code == GAME_PLAY:
+                    p_col = int(data["player"])
+                    p_x = int(data["x"])
+                    p_y = int(data["y"])
+                    move = data["move"]
+                    if move == Util.LEFT and board.get_item(p_x-1, p_y) == 0:
+                        board.set_cell(p_x-1, p_y, p_col)
+                    elif move == Util.RIGHT and board.get_item(p_x+1, p_y) == 0:
+                        board.set_cell(p_x+1, p_y, p_col)
+                    elif move == Util.UP and board.get_item(p_x, p_y-1) == 0:
+                        board.set_cell(p_x, p_y-1, p_col)
+                    elif move == Util.DOWN and board.get_item(p_x, p_y+1) == 0:
+                        board.set_cell(p_x, p_y+1, p_col)
+                    board.print_board()
+                    print()
+                    reply["code"] = BOARD
+                    reply["data"] = board
+                    broadcast(reply)
+                    continue
 
-                elif data == PLAYER_JOIN:
+                elif data_code == PLAYER_JOIN:
                     print("data: new player has joined.")
                     player_num = add_client_to_list(p_conn, p_addr)
                     if player_num == -1:
                         print("player could not join.")
                         break
-                    reply = player_num
+
+                    reply["code"] = PLAYER_CAN_JOIN
+                    reply["data"] = player_num
                     print("player number: ", player_num)
 
                     # Both of these checks will not allow player to join the game.
                     # if isGameInProgress:
                     #     reply = GAME_IN_PROGRESS
                     if player_num is None:
-                        reply = "GameFull"
+                        reply["code"] = GAME_FULL
                         print("-----------   Game is full")
 
-                # TODO: Remove once actual implementation is implemented (just for visual test cues)
-                elif data == 'GamePlay;2;UP' or data == 'GamePlay;2;DOWN' or data == 'GamePlay;2;RIGHT' or data == 'GamePlay;2;LEFT':
-                    reply = TESTING_PURPOSES+'2'
-                    # broadcast(reply)      # will be used in the future
-                    # continue
-                elif data == 'GamePlay;1;UP' or data == 'GamePlay;1;DOWN' or data == 'GamePlay;1;RIGHT' or data == 'GamePlay;1;LEFT':
-                    reply = TESTING_PURPOSES+'1'
-
-                elif data == PLAYER_DISCONNECT:
+                elif data_code == PLAYER_DISCONNECT:
                     # todo: remove them in clients, decrement player count
-                    print("A client has disconnected.")
+                    print("[Player %s]: A client has disconnected." % player_num)
                     delete_client_from_list(p_conn, p_addr)
+                    break
 
                 p_conn.sendall(pickle.dumps(reply))
 
-        except Exception as e:
-            print('Server - Reading error: {}'.format(str(e)))
+        except EOFError as err:
+            delete_client_from_list(p_conn, p_addr)
+            break
+
+        except Exception as err:
+            print('Server - Reading error: {}'.format(str(err)))
             continue
 
+
     print("[Player %s] - conn.close()" % player_num)
-    p_conn.close()
+    # p_conn.close()
 
 
 while True:
@@ -178,9 +208,7 @@ while True:
         print("Starting new game...\nGenerating new map...")
         board = Board(Util.TILEWIDTH, Util.TILEHEIGHT)
         board.initialize_board()
-        some_board = board.get_board()
-        print("board: %s" % board)
-        print("Some board: %s" % some_board)
+        board.print_board()
         gameOn = True  # When the first player 'starts' the game, other players just need to join (map generates once)
 
 

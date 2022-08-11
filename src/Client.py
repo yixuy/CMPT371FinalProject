@@ -2,16 +2,21 @@ import errno
 from threading import Thread
 
 from GameLogic.Util import WIDTH, HEIGHT
+from GameLogic.Board import Board
 import pygame
 from Network import Network
 from NetworkUtils import *
 import sys
+import time
 
 from GameLogic.Game import Game
 
 did_server_start_game = False
 gameStartPrep = False
 gameStart = False
+gameRdy = True
+g = None
+
 pygame.font.init()
 
 win = pygame.display.set_mode((WIDTH, HEIGHT))
@@ -25,50 +30,84 @@ pygame.display.set_caption("Client")
         - If client passed the tile checking, client will update its own board (by setting the tile colour)
         '''
 
+
+# NOTE: I'm leaving the print statements here for now because this threading is not fully reliable yet!
 def listen_for_messages(network, player_num):
-    global did_server_start_game, gameStartPrep, gameStart
-    print("Started listen_for_messages() Thread!")
+    global did_server_start_game, gameStartPrep, gameStart, gameRdy, g
+    print("[Player %s] - Started listen_for_messages() Thread!" % player_num)
     clock = pygame.time.Clock()
     while True:
-        clock.tick(30)
+        clock.tick(60)
+        # print("[THREAD]: gameRdy = %s, gameStartPrep = %s, gameStart = %s" % (gameRdy, gameStartPrep, gameStart))
         try:
-            if gameStartPrep:
-                msg = network.recv()
-                print('msg from server: %s' % msg)
-                if msg == GAME_START:
-                    did_server_start_game = True
-                    # break
             if gameStart:
+                print("[THREAD]: In gameStart")
                 msg = network.recv()
-                if msg == TESTING_PURPOSES+str(player_num):
-                    print("TESTING received: %s" % msg)
+
+                print("THREAD [gameStart]: gameStart, msg from server: %s" % msg)
+                if msg is not None and msg["code"] == BOARD:
+                    if msg["data"] is not None:
+                        g.update_board(msg["data"])
+
+            elif gameStartPrep:
+                print("[THREAD]: In gameStartPrep")
+                msg = network.recv()
+                if msg is None:
+                    continue
+                print('THREAD [gameStartPrep]: msg from server: %s' % msg)
+                msg_code = msg["code"]
+                if msg_code is not None and msg_code == GAME_START:
+                    did_server_start_game = True
+                    # time.sleep(1)     # Seems to work now without this (Re-enable this if thread does not go to gameStart properly)
+                elif msg_code == GAME_NOT_ENOUGH_PLAYERS:
+                    print("[gameStartPrep] - Game can't start because not enough players ready.")
+
+            elif gameRdy:
+                print("THREAD [gameRdy]: gameRdy")
+                msg = network.recv()
+                if msg["code"] is not None and msg["code"] == BOARD:
+                    g.set_board(msg["data"])
+                    print("THREAD: BOARD: ", g.get_board())
+
         except IOError as e:
             if e.errno != errno.EAGAIN and e.errno != errno.EWOULDBLOCK:
                 print('Reading error: {}'.format(e.errno))
                 sys.exit()
+            if e.errno == errno.EPIPE:  # Broken pipe (either from server offline, etc)
+                print('Reading error: {}'.format(e.errno))
+                close_game(network)
             continue
+
         except Exception as e:
             print('Reading error: {}'.format(str(e)))
+            pygame.quit()
             sys.exit()
     print("Thread finished")
 
 
+def close_game(network):
+    print("Closing game...")
+    reply = {"code": PLAYER_DISCONNECT}
+    network.send_only(reply)
+    network.disconnect()
+    pygame.quit()
+    sys.exit()
+
+
 def main(network, p):
-    global gameStartPrep, did_server_start_game, gameStart
+    global gameStartPrep, did_server_start_game, gameStart, gameRdy, g
     run = True
     clock = pygame.time.Clock()
     n = network
     player_num = p
     print("You are Player", player_num)
 
-    gameRdy = True
-    g = None
-
     t = Thread(target=listen_for_messages, args=(n, player_num))
     t.daemon = True
     t.start()
 
     while run:
+        reply = {}
         clock.tick(60)  # Runs the game in 60fps
         try:
             '''READY PHASE (for client)
@@ -76,12 +115,15 @@ def main(network, p):
             # Get data from the server in 60fps (to update own board)
             if gameRdy is True:
                 # Get the board once from the server
-                board = n.send(GET_BOARD)
-                print("board", board)
+                if g is None:
+                    g = Game()
+                    reply["code"] = GET_BOARD
+                    n.send_only(reply)
 
                 # Generate the Game object with the game map
-                if board:
-                    g = Game(board)
+                else:
+                    gameStartPrep = True
+                    gameRdy = False
 
                     win.fill((100, 100, 200))
                     font = pygame.font.SysFont("comicsans", 37)
@@ -91,19 +133,20 @@ def main(network, p):
                     win.blit(text2, (15, 230))
                     pygame.display.flip()
 
-                    gameRdy = False
-                    gameStartPrep = True
-
             if gameStartPrep is True:
                 if did_server_start_game:
-                    gameStartPrep = False
                     gameStart = True
+                    gameStartPrep = False
                 else:
                     for event in pygame.event.get():
                         if event.type == pygame.KEYDOWN:
                             if event.key == pygame.K_SPACE:
-                                n.send_only(GAME_PREPSTART)
-
+                                reply["code"] = GAME_PREPSTART
+                                n.send_only(reply)
+                            if event.type == pygame.K_ESCAPE:
+                                close_game(n)
+                        if event.type == pygame.QUIT:
+                            close_game(n)
 
             '''GAME PHASE (for client)'''
             # Actual Gameplay Logic
@@ -111,24 +154,21 @@ def main(network, p):
                 print("Starting gameStart: " + str(gameStart))
                 g.game_screen()
                 while True:
+                    # reply["code"] = GET_BOARD
+                    # n.send_only(reply)  # *This is causing the server to keep receiving empty message once ctrl+c
                     g.input_dir(network, player_num)
                     g.update()
                     g.draw()
 
-
-            for event in pygame.event.get():
-                if event.type == pygame.QUIT:
-                    run = False
-                    msg = n.send(PLAYER_DISCONNECT)
-                    pygame.quit()
-                    sys.exit()
-
         except KeyboardInterrupt:
+            print("Keyboard interrupt: Closing game...")
+            n.send_only({"code": PLAYER_DISCONNECT})
+            n.disconnect()
             pygame.quit()
             sys.exit()
 
         except Exception as e:
-            print('Reading error: {}'.format(str(e)))
+            print('Reading error [MAIN]: {}'.format(str(e)))
             print("Still continuing game loop as per normal.")
             continue
 
@@ -146,6 +186,7 @@ def menu_screen():
 
     while run:
         clock.tick(60)  # Makes the client game run in 60fps
+        reply = {}
 
         for event in pygame.event.get():
             if event.type == pygame.KEYDOWN:
@@ -153,14 +194,15 @@ def menu_screen():
                     print("button pressed - ready")
                     run = False
                     n.connect()
-                    new_game = n.send(PLAYER_JOIN)
+                    reply["code"] = PLAYER_JOIN
+                    new_game = n.send(reply)
                     print("new game received: ", new_game)
-                    if new_game == GAME_FULL or new_game == GAME_IN_PROGRESS:
+                    new_game_code = new_game["code"]
+                    if new_game_code == GAME_FULL or new_game_code == GAME_IN_PROGRESS:
                         print("Game is either full or in progress...\nClosing client connection...")
-                        n.disconnect()
-                        pygame.quit()
+                        close_game(n)
                     else:
-                        n.set_player_num(new_game)
+                        n.set_player_num(new_game["data"])
                         # UI
                         win.fill((200, 200, 128))
                         font = pygame.font.SysFont("comicsans", 45)
@@ -168,14 +210,10 @@ def menu_screen():
                         win.blit(text, (20, 200))
                         pygame.display.update()
             if event.type == pygame.QUIT:
-                print("quitting game...")
-                pygame.quit()
-                run = False
-
+                close_game(n)
 
     main(n, n.get_player_num())
 
 
 while True:
     menu_screen()
-
