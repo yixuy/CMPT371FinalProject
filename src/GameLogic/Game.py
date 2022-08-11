@@ -1,11 +1,13 @@
-from NetworkUtils import GAME_PLAY
-import pygame as pg
 import sys
+
+from NetworkUtils import GAME_PLAY
+
 from .Player import *
-from .Board import *
 from .Tile import *
+
+
 # Reference: https://www.youtube.com/watch?v=3UxnelT9aCo
-class Game():
+class Game:
     def __init__(self, board_obj):
         pg.init()
         self.screen = pg.display.set_mode((WIDTH, HEIGHT))
@@ -76,44 +78,20 @@ class Game():
                         msg = msg + LEFT
                         network.send(msg)
                         return
-                    # if curr_x >= 1 and self.board[curr_x - 1][curr_y] == 0:
-                    #     self.player.move(dx=-1)
-                    #     self.board_obj.change_tile(curr_x,curr_y,colour_index)
-                    #     self.update_tile(curr_x,curr_y,colour_index)
                 elif event.key == pg.K_RIGHT:
                     if curr_x + 1 < TILEWIDTH and self.board[curr_x + 1][curr_y] != -1:
                         msg = msg + RIGHT
                         network.send(msg)
                         return
-                    # if curr_x + 1 < TILEWIDTH and self.board[curr_x + 1][curr_y] == 0:
-                    #     self.player.move(dx=1)
-                    #     self.board_obj.change_tile(curr_x,curr_y,colour_index)
-                    #     self.update_tile(curr_x, curr_y, colour_index)
 
                 elif event.key == pg.K_UP:
                     if curr_y >= 1 and self.board[curr_x][curr_y - 1] != -1:
                         msg = msg + UP
                         network.send(msg)
                         return
-                    # if curr_y >= 1 and self.board[curr_x][curr_y - 1] == 0:
-                    #     self.player.move(dy=-1)
-                    #     self.board_obj.change_tile(curr_x,curr_y,colour_index)
-                    #     self.update_tile(curr_x, curr_y, colour_index)
                 elif event.key == pg.K_DOWN:
                     if curr_y + 1 < TILEHEIGHT and self.board[curr_x][curr_y + 1] != -1:
                         msg = msg + DOWN
                         network.send(msg)
                         return
-                    # if curr_y + 1 < TILEHEIGHT and self.board[curr_x][curr_y + 1] == 0:
-                    #     self.player.move(dy=1)
-                    #     self.board_obj.change_tile(curr_x,curr_y,colour_index)
-                    #     self.update_tile(curr_x, curr_y, colour_index)
-
-# board_test = Board(int(TILEWIDTH), int(TILEHEIGHT))
-# board_test.initialize_board()
-# g = Game(board_test)
-#
-# while True:
-#     g.game_screen()
-#     g.start_game()
 
