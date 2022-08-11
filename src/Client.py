@@ -150,9 +150,10 @@ def main(network, p):
             if gameStart is True:
                 print("Starting gameStart: " + str(gameStart))
                 g.game_screen()
+
                 while True:
                     reply["code"] = GET_BOARD
-                    n.send_only(reply)
+                    # n.send_only(reply)      # *This is causing the server to keep receiving empty message once ctrl+c
                     # g.update_board(updated_board_obj)
                     g.input_dir(network, player_num)
                     g.update()
@@ -171,7 +172,7 @@ def main(network, p):
         # breaks the server side -> makes the message recieved in server to be empty,thus break
         except KeyboardInterrupt:
             print("Keyboard interrupt: Closing game...")
-            # n.send_only({"code": PLAYER_DISCONNECT})
+            n.send_only({"code": PLAYER_DISCONNECT})
             n.disconnect()
             pygame.quit()
             sys.exit()

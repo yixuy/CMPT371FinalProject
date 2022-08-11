@@ -180,12 +180,14 @@ def threaded_client(p_conn, p_addr):
 
                 p_conn.sendall(pickle.dumps(reply))
 
+        except EOFError as err:
+            delete_client_from_list(p_conn)
+            break
+
         except Exception as err:
             print('Server - Reading error: {}'.format(str(err)))
             continue
-            # break
-        # except EOFError as err:
-        #     if err.ran
+
 
     print("[Player %s] - conn.close()" % player_num)
     p_conn.close()
