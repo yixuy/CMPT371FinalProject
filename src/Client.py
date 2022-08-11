@@ -33,12 +33,12 @@ def listen_for_messages(network, player_num):
     while True:
         clock.tick(30)
         try:
+            print("gameRdy", gameRdy)
             if gameRdy:
                 msg = network.recv()
-                if msg == type(Board):
-                    print("BOARD RECEIVED")
+                print("gameRdy")
+                if msg:
                     g.set_board(msg)
-                    print("CLIENT UPDATED THEIR BOARD")
             if gameStartPrep:
                 msg = network.recv()
                 print('msg from server: %s' % msg)
@@ -47,9 +47,10 @@ def listen_for_messages(network, player_num):
                     # break
             if gameStart:
                 msg = network.recv()
+                print("gameStart")
                 if msg == TESTING_PURPOSES+str(player_num):
                     print("TESTING received: %s" % msg)
-                elif msg == type(Board):
+                elif type(msg) == type(Board):
                     print("BOARD RECEIVED")
                     g.update_board(msg)
                     print("CLIENT UPDATED THEIR BOARD")
@@ -88,12 +89,12 @@ def main(network, p):
             # Get data from the server in 60fps (to update own board)
             if gameRdy is True:
                 # Get the board once from the server
-                while g is not None:
+                if g is None:
                     g = Game()
                     n.send_only(GET_BOARD)
-
                 # Generate the Game object with the game map
                 if g.get_board() is not None:
+                    print("BOARD IS READY")
                     win.fill((100, 100, 200))
                     font = pygame.font.SysFont("comicsans", 37)
                     text = font.render("Player is Ready!", True, (255, 0, 0))

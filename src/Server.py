@@ -87,12 +87,12 @@ def threaded_client(p_conn, p_addr):
     player_num = 0
     while True:
         p_count = MAX_PLAYERS - len(free_clients_indices)
-        print(" ----------- PCOUNT: ", p_count)   # Does not work properly sometimes
-        print(" ----------- player_count: ", player_count)
+        # print(" ----------- PCOUNT: ", p_count)   # Does not work properly sometimes
+        # print(" ----------- player_count: ", player_count)
         reply = ""
         try:
             data = p_conn.recv(4096).decode().split(";")
-            # print(data)
+            print(data)
             if not data:
                 continue
             else:
@@ -116,10 +116,9 @@ def threaded_client(p_conn, p_addr):
                     if player_count >= 2:
                         print("Server: Initiating GAME_START")
                         reply = GAME_START
-                        gameStart = True
                         print(reply)
-                        # broadcast(reply)
-                        # continue
+                        broadcast(reply)
+                        continue
                     else:
                         reply = 'Game requires minimum of 2 players.'
 
