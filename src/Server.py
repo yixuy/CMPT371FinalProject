@@ -109,6 +109,17 @@ def threaded_client(p_conn, p_addr):
                     print(p_count)
                     if p_count >= 2:
                         reply = GAME_START
+                        board.set_cell(0, 0, 1)
+                        if p_count == 2:
+                            board.set_cell(15,0,2)
+                        if p_count == 3:
+                            board.set_cell(15,0,2)
+                            board.set_cell(0,15,3)
+                        if p_count == 4:
+                            board.set_cell(15,0,2)
+                            board.set_cell(0,15,3)
+                            board.set_cell(15,15,4)
+
                         gameStart = True
                         print(reply)
                         # broadcast(reply)

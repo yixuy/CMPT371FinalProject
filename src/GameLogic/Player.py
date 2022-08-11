@@ -13,9 +13,16 @@ class Player(pg.sprite.Sprite):
         self.image = pg.Surface((TILESIZE-1, TILESIZE-1))
         self.x = x
         self.y = y
+        self.pixel_x = x-1*TILESIZE
+        self.pixel_y = y-1*TILESIZE
         self.image.fill(COLOURS[self.colour_index])
-        self.rect = pg.draw.rect(self.image, "black", [self.x+1,self.y+1,30,30],1)
-
+        self.rect = self.image.get_rect()
+        self.rect.x = (self.x-1 * TILESIZE)+1
+        self.rect.y = (self.y-1 * TILESIZE)+1
+        self.drawing = pg.draw.rect(self.image, "black", [self.pixel_x,self.pixel_y,16,16])
+        # print(self.pixel_x)
+        # print(self.pixel_y)
+        # print(TILESIZE)
 
     def move(self, dx=0, dy=0):
         if 0 <= self.x + dx < TILEWIDTH and 0 <= self.y + dy < TILEWIDTH:
@@ -23,8 +30,8 @@ class Player(pg.sprite.Sprite):
             self.y += dy
 
     def update(self):
-        self.rect.x = (self.x * TILESIZE)+1
-        self.rect.y = (self.y * TILESIZE)+1
+        self.rect.x = (self.x-1 * TILESIZE)
+        self.rect.y = (self.y-1 * TILESIZE)
 
     def get_x(self):
         return self.x
