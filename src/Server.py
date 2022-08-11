@@ -43,7 +43,7 @@ Server:
 def add_client_to_list(p_conn, p_addr):
     global player_count
     print("Server: using add_client_to_list()")
-    # clients format: [ [conn, ip, port], [conn, ip, port], etc ],
+    # clients format: [ [conn, ip, port], [conn, ip, port], etc ], etc ]
     # Note: clients indices are kept the same (even when removed)
 
     # This is to check if client is already connected (to counter the potential bugs on client side)
@@ -75,11 +75,13 @@ def delete_client_from_list(p_conn, p_addr):
 
 
 def broadcast(msg):
+    print("clients: ", clients)
     for client in clients:
-        print("broadcasting ", client[0])
+        # print("broadcasting ", client[0])
         if client is not None:
             my_conn = client[0]
             my_conn.send(pickle.dumps(msg))
+    print("done broadcast()")
 
 
 def threaded_client(p_conn, p_addr):
@@ -89,33 +91,35 @@ def threaded_client(p_conn, p_addr):
         p_count = MAX_PLAYERS - len(free_clients_indices)
         # print(" ----------- PCOUNT: ", p_count)   # Does not work properly sometimes
         # print(" ----------- player_count: ", player_count)
-        reply = ""
+        reply = {}
         try:
             data = p_conn.recv(4096).decode().split(";")
-            print(data)
+
+            print("DECODED data", data)
             if not data:
                 continue
             else:
-                if data[0] == '':
-                    # print('no req')
-                    continue
+                # if data[0] == '':
+                #     # print('no req')
+                #     continue
 
                 # reset the game
-                elif data[0] == GAME_RESET:
+                if data[0] == GAME_RESET:
                     print("data: 'reset' ")
-                    reply = "Game reset"
+                    reply["code"] = "Game reset"
 
                 # do the tile checking
                 elif data[0] == GET_BOARD:
                     # print("data: client getting board from server")
-                    reply = board
+                    reply["code"] = BOARD
+                    reply["data"] = board
 
                 elif data[0] == GAME_PREPSTART:
                     print("Server: Preparing to start the game.")
                     print("Current p_count: ", p_count)
                     if player_count >= 2:
                         print("Server: Initiating GAME_START")
-                        reply = GAME_START
+                        reply["code"] = GAME_START
                         print(reply)
                         broadcast(reply)
                         continue
@@ -137,7 +141,9 @@ def threaded_client(p_conn, p_addr):
                         board.set_cell(p_x, p_y+1, p_col)
                     board.print_board()
                     print()
-                    reply = board
+                    reply["code"] = BOARD
+                    reply["data"] = board
+                    # reply = TESTING_PURPOSES+str(player_num)
 
                 elif data[0] == PLAYER_JOIN:
                     print("data: new player has joined.")
@@ -145,14 +151,16 @@ def threaded_client(p_conn, p_addr):
                     if player_num == -1:
                         print("player could not join.")
                         break
-                    reply = player_num
+
+                    reply["code"] = PLAYER_CAN_JOIN
+                    reply["data"] = player_num
                     print("player number: ", player_num)
 
                     # Both of these checks will not allow player to join the game.
                     # if isGameInProgress:
                     #     reply = GAME_IN_PROGRESS
                     if player_num is None:
-                        reply = "GameFull"
+                        reply["code"] = GAME_FULL
                         print("-----------   Game is full")
 
                 elif data[0] == PLAYER_DISCONNECT:

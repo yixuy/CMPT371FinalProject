@@ -89,6 +89,7 @@ class Game():
                         msg = msg + LEFT
                         # updated_board_obj = network.send(msg)
                         # self.update_board(updated_board_obj)
+                        network.send_only(msg)
                         return
                 elif event.key == pg.K_RIGHT:
                     if curr_x + 1 < TILEWIDTH and self.board[curr_x + 1][curr_y] == 0:
@@ -96,6 +97,7 @@ class Game():
                         msg = msg + RIGHT
                         # updated_board_obj = network.send(msg)
                         # self.update_board(updated_board_obj)
+                        network.send_only(msg)
                         return
                 elif event.key == pg.K_UP:
                     if curr_y >= 1 and self.board[curr_x][curr_y - 1] == 0:
@@ -103,6 +105,7 @@ class Game():
                         msg = msg + UP
                         # updated_board_obj = network.send(msg)
                         # self.update_board(updated_board_obj)
+                        network.send_only(msg)
                         return
                 elif event.key == pg.K_DOWN:
                     if curr_y + 1 < TILEHEIGHT and self.board[curr_x][curr_y + 1] == 0:
@@ -110,4 +113,5 @@ class Game():
                         msg = msg + DOWN
                         # updated_board_obj = network.send(msg)
                         # self.update_board(updated_board_obj)
+                        network.send_only(msg)
                         return
