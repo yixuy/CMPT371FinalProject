@@ -126,6 +126,7 @@ def threaded_client(p_conn, p_addr):
                     else:
                         reply = 'Game requires minimum of 2 players.'
 
+                # When player makes a move, server updates the board, and sends back the new board
                 elif data[0] == GAME_PLAY:
                     p_col = int(data[1])
                     p_x = int(data[2])
@@ -143,6 +144,7 @@ def threaded_client(p_conn, p_addr):
                     print()
                     reply["code"] = BOARD
                     reply["data"] = board
+                    continue
                     # reply = TESTING_PURPOSES+str(player_num)
 
                 elif data[0] == PLAYER_JOIN:

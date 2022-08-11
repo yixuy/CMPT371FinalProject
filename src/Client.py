@@ -37,41 +37,42 @@ def listen_for_messages(network, player_num):
     while True:
         clock.tick(60)
         try:
-            print("gameRdy state:", gameRdy)
-            print("gameStartPrep state:", gameStartPrep)
+            print("THREAD: gameRdy state:", gameRdy)
+            print("THREAD: gameStartPrep state:", gameStartPrep)
 
             if gameStartPrep:
                 msg = network.recv()
-                print('msg from server: %s' % msg)
+                print('THREAD: msg from server: %s' % msg)
                 if msg["code"] == GAME_START:
                     did_server_start_game = True
                     # break
             if gameStart:
                 msg = network.recv()
-                print("gameStart")
-                if msg["code"] == TESTING_PURPOSES+str(player_num):
-                    print("TESTING received: %s" % msg)
-                if msg["code"] == BOARD:
+                print("THREAD: gameStart, msg from server: %s" % msg)
+                # if msg["code"] == TESTING_PURPOSES+str(player_num):
+                #     print("TESTING received: %s" % msg)
+                if msg is not None and msg["code"] == BOARD:
                 # elif type(msg) is type(Board):
-                    print("BOARD RECEIVED")
-                    g.update_board(msg["data"])
-                    print("CLIENT UPDATED THEIR BOARD")
+                    if type(msg["data"]) == Board:
+                        print("THREAD: BOARD RECEIVED")
+                        g.update_board(msg["data"])
+                        print("THREAD: CLIENT UPDATED THEIR BOARD")
             if gameRdy:
                 msg = network.recv()
-                print("gameRdy")
+                print("THREAD: gameRdy")
                 # print("msg: ", msg)
                 if msg["code"] == BOARD:
                     g.set_board(msg["data"])
-                    print("BOARD: ", g.get_board())
+                    print("THREAD: BOARD: ", g.get_board())
                     # did_player_rdy = True
                     time.sleep(1)
         except IOError as e:
             if e.errno != errno.EAGAIN and e.errno != errno.EWOULDBLOCK:
-                print('Reading error: {}'.format(e.errno))
+                print('THREAD: Reading error: {}'.format(e.errno))
                 sys.exit()
             continue
         except Exception as e:
-            print('Reading error: {}'.format(str(e)))
+            print('THREAD: Reading error: {}'.format(str(e)))
             sys.exit()
     print("Thread finished")
 
