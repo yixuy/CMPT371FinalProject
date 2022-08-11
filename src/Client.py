@@ -1,14 +1,18 @@
-from time import sleep
+import errno
+from threading import Thread
+from GameLogic.Board import Board
 from GameLogic.Util import WIDTH, HEIGHT
 import pygame
-import pickle
 from Network import Network
 from NetworkUtils import *
 import sys
-import errno
-import socket
-
 from GameLogic.Game import Game
+
+did_server_start_game = False
+gameStartPrep = False
+gameStart = False
+gameRdy = True
+g = None
 pygame.font.init()
 
 win = pygame.display.set_mode((WIDTH, HEIGHT))
@@ -17,13 +21,51 @@ pygame.display.set_caption("Client")
 '''Client's Game Implementation:
         - Onces client ready, waits for Server to signal that game is starting
         - Every 30fps, client will send Server its current coords
-        - Server will process that coords and send client back the 'updated' tiles if 
+        - Server will process that coords and send client back the 'updated' tiles if
             it passed the tile checking
         - If client passed the tile checking, client will update its own board (by setting the tile colour)
         '''
 
+def listen_for_messages(network, player_num):
+    global did_server_start_game, gameStartPrep, gameStart, gameRdy, g
+    print("Started listen_for_messages() Thread!")
+    clock = pygame.time.Clock()
+    while True:
+        clock.tick(30)
+        try:
+            if gameRdy:
+                msg = network.recv()
+                if msg == type(Board):
+                    print("BOARD RECEIVED")
+                    g.set_board(msg)
+                    print("CLIENT UPDATED THEIR BOARD")
+            if gameStartPrep:
+                msg = network.recv()
+                print('msg from server: %s' % msg)
+                if msg == GAME_START:
+                    did_server_start_game = True
+                    # break
+            if gameStart:
+                msg = network.recv()
+                if msg == TESTING_PURPOSES+str(player_num):
+                    print("TESTING received: %s" % msg)
+                elif msg == type(Board):
+                    print("BOARD RECEIVED")
+                    g.update_board(msg)
+                    print("CLIENT UPDATED THEIR BOARD")
+        except IOError as e:
+            if e.errno != errno.EAGAIN and e.errno != errno.EWOULDBLOCK:
+                print('Reading error: {}'.format(e.errno))
+                sys.exit()
+            continue
+        except Exception as e:
+            print('Reading error: {}'.format(str(e)))
+            sys.exit()
+    print("Thread finished")
+
 
 def main(network, p):
+    global gameStartPrep, did_server_start_game, gameStart, gameRdy, g
     run = True
     clock = pygame.time.Clock()
     n = network
@@ -31,9 +73,11 @@ def main(network, p):
     print("You are Player", player_num)
 
     gameRdy = True
-    gameStart = False
-    gameStartPrep = False
     g = None
+
+    t = Thread(target=listen_for_messages, args=(n, player_num))
+    t.daemon = True
+    t.start()
 
     while run:
         clock.tick(60)  # Runs the game in 60fps
@@ -44,12 +88,12 @@ def main(network, p):
             # Get data from the server in 60fps (to update own board)
             if gameRdy is True:
                 # Get the board once from the server
-                board = n.send(GET_BOARD)
+                while g is not None:
+                    g = Game()
+                    n.send_only(GET_BOARD)
 
                 # Generate the Game object with the game map
-                if board:
-                    g = Game(board)
-
+                if g.get_board() is not None:
                     win.fill((100, 100, 200))
                     font = pygame.font.SysFont("comicsans", 37)
                     text = font.render("Player is Ready!", True, (255, 0, 0))
@@ -57,37 +101,32 @@ def main(network, p):
                     win.blit(text, (15, 150))
                     win.blit(text2, (15, 230))
                     pygame.display.flip()
+
                     gameRdy = False
                     gameStartPrep = True
 
-            while gameStartPrep is True:
-                # data = n.recv()
-                # print("NONBLOCKING:", data)
-                # if(data == GAME_START):
-                #     gameStart = True
-                #     gameStartPrep = False
-                #     break
-                for event in pygame.event.get():
-                    if event.type == pygame.KEYDOWN:
-                        if event.key == pygame.K_SPACE:
-                            isGameStart = n.send(GAME_PREPSTART)
-                            if isGameStart == GAME_START:
-                                print("GAME CAN START...")
-                                gameStart = True
-                                gameStartPrep = False
+            if gameStartPrep is True:
+                if did_server_start_game:
+                    gameStartPrep = False
+                    gameStart = True
+                else:
+                    for event in pygame.event.get():
+                        if event.type == pygame.KEYDOWN:
+                            if event.key == pygame.K_SPACE:
+                                n.send_only(GAME_PREPSTART)
+
 
             '''GAME PHASE (for client)'''
             # Actual Gameplay Logic
             if gameStart is True:
+                print("Starting gameStart: " + str(gameStart))
                 g.game_screen()
                 while True:
-                    updated_board_obj = n.send(GET_BOARD)
-                    g.update_board(updated_board_obj)
+                    n.send_only(GET_BOARD)
+                    # g.update_board(updated_board_obj)
                     g.input_dir(network, player_num)
                     g.update()
                     g.draw()
-                    # updated_board_obj.print_board()
-                    # g.update_board(updated_board_obj)
 
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
@@ -96,13 +135,14 @@ def main(network, p):
                     pygame.quit()
                     sys.exit()
 
-        except socket.error as e:
-            print("Error [Network.py]: ", e)
-            run = False
-            print("Couldn't get game")
-            break
-            
+        except KeyboardInterrupt:
+            pygame.quit()
+            sys.exit()
 
+        except Exception as e:
+            print('Reading error: {}'.format(str(e)))
+            print("Still continuing game loop as per normal.")
+            continue
 
 def menu_screen():
     run = True
@@ -143,9 +183,8 @@ def menu_screen():
                 pygame.quit()
                 run = False
 
-
     main(n, n.get_player_num())
-
 
 while True:
     menu_screen()
+

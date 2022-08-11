@@ -6,7 +6,7 @@ from GameLogic.Board import Board
 import GameLogic.Util as Util
 from NetworkUtils import *
 MAX_PLAYERS = 4
-playerCount = 0
+player_count = 0
 gameOn = False
 gameStart = False
 board = None
@@ -41,6 +41,7 @@ Server:
 
 
 def add_client_to_list(p_conn, p_addr):
+    global player_count
     print("Server: using add_client_to_list()")
     # clients format: [ [conn, ip, port], [conn, ip, port], etc ],
     # Note: clients indices are kept the same (even when removed)
@@ -52,6 +53,7 @@ def add_client_to_list(p_conn, p_addr):
         return -1
 
     if len(free_clients_indices) > 0:
+        player_count += 1
         free_clients_indices.sort()  # so the smallest player number is preferred
         to_use_i = free_clients_indices.pop(0)
         clients[to_use_i] = [p_conn, p_addr[0], p_addr[1]]
@@ -61,17 +63,20 @@ def add_client_to_list(p_conn, p_addr):
 
 
 def delete_client_from_list(p_conn, p_addr):
+    global player_count
     try:
         for x in range(0, len(clients)):
             if clients[x][1] == p_addr[0] and clients[x][1] == p_addr[1]:
                 clients[x] = None
                 free_clients_indices.append(x)
+                player_count -= 1
     except:
         pass
 
 
 def broadcast(msg):
     for client in clients:
+        print("broadcasting ", client[0])
         if client is not None:
             my_conn = client[0]
             my_conn.send(pickle.dumps(msg))
@@ -82,7 +87,8 @@ def threaded_client(p_conn, p_addr):
     player_num = 0
     while True:
         p_count = MAX_PLAYERS - len(free_clients_indices)
-        # print(" ----------- PCOUNT: ", p_count)
+        print(" ----------- PCOUNT: ", p_count)   # Does not work properly sometimes
+        print(" ----------- player_count: ", player_count)
         reply = ""
         try:
             data = p_conn.recv(4096).decode().split(";")
@@ -106,8 +112,9 @@ def threaded_client(p_conn, p_addr):
 
                 elif data[0] == GAME_PREPSTART:
                     print("Server: Preparing to start the game.")
-                    print(p_count)
-                    if p_count >= 2:
+                    print("Current p_count: ", p_count)
+                    if player_count >= 2:
+                        print("Server: Initiating GAME_START")
                         reply = GAME_START
                         gameStart = True
                         print(reply)
@@ -137,10 +144,10 @@ def threaded_client(p_conn, p_addr):
                     print("data: new player has joined.")
                     player_num = add_client_to_list(p_conn, p_addr)
                     if player_num == -1:
+                        print("player could not join.")
                         break
                     reply = player_num
                     print("player number: ", player_num)
-
 
                     # Both of these checks will not allow player to join the game.
                     # if isGameInProgress:
@@ -156,7 +163,8 @@ def threaded_client(p_conn, p_addr):
 
                 p_conn.sendall(pickle.dumps(reply))
 
-        except:
+        except Exception as e:
+            print('Server - Reading error: {}'.format(str(e)))
             continue
 
     print("[Player %s] - conn.close()" % player_num)

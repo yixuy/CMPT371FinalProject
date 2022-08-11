@@ -1,12 +1,13 @@
+import errno
 import socket
 import pickle
+import sys
 from NetworkUtils import IPADDRESS, PORTNUMBER
 
 
 class Network:
     def __init__(self):
         self.client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        # self.client.setblocking(False)
         self.server = IPADDRESS
         self.port = PORTNUMBER
         self.addr = (self.server, self.port)
@@ -18,6 +19,13 @@ class Network:
             return
         except:
             pass
+
+    def send_only(self, data):
+        try:
+            self.client.send(data.encode())
+            return
+        except socket.error as e:
+            print("Error [Network.py]: ", e)
 
     # When sending to Server, it will also hear back from the server
     def send(self, data):

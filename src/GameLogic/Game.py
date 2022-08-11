@@ -6,13 +6,13 @@ from .Board import *
 from .Tile import *
 # Reference: https://www.youtube.com/watch?v=3UxnelT9aCo
 class Game():
-    def __init__(self, board_obj):
+    def __init__(self):
         pg.init()
         self.screen = pg.display.set_mode((WIDTH, HEIGHT))
         pg.display.set_caption(TITLE)
         self.clock = pg.time.Clock()
-        self.board = board_obj.get_board()
-        self.board_obj = board_obj
+        self.board = None
+        self.board_obj = None
         self.grid = [[0 for i in range(TILEWIDTH)] for j in range(TILEHEIGHT)]
         pg.key.set_repeat(500, 100)
 
@@ -58,12 +58,19 @@ class Game():
         tile = self.grid[x][y]
         tile.set_colour(colour_index)
 
+    def set_board(self, new_board_obj):
+        self.board_obj = new_board_obj
+        self.board = new_board_obj.get_board()
+
     def update_board(self, updated_board_obj):
         self.board_obj = updated_board_obj
         self.board = updated_board_obj.get_board()
         for row in range(TILEHEIGHT):
             for col in range(TILEHEIGHT):
                 self.update_tile(row, col, self.board[row][col])
+
+    def get_board(self):
+        return self.board
 
     def input_dir(self, network, player):
         msg = GAME_PLAY + ";" + str(player) + ";" + str(self.player.get_x()) + ";" + str(self.player.get_y()) + ";"
@@ -80,27 +87,27 @@ class Game():
                     if curr_x >= 1 and self.board[curr_x-1][curr_y] == 0:
                         self.player.move(dx=-1)
                         msg = msg + LEFT
-                        updated_board_obj = network.send(msg)
-                        self.update_board(updated_board_obj)
+                        # updated_board_obj = network.send(msg)
+                        # self.update_board(updated_board_obj)
                         return
                 elif event.key == pg.K_RIGHT:
                     if curr_x + 1 < TILEWIDTH and self.board[curr_x + 1][curr_y] == 0:
                         self.player.move(dx=1)
                         msg = msg + RIGHT
-                        updated_board_obj = network.send(msg)
-                        self.update_board(updated_board_obj)
+                        # updated_board_obj = network.send(msg)
+                        # self.update_board(updated_board_obj)
                         return
                 elif event.key == pg.K_UP:
                     if curr_y >= 1 and self.board[curr_x][curr_y - 1] == 0:
                         self.player.move(dy=-1)
                         msg = msg + UP
-                        updated_board_obj = network.send(msg)
-                        self.update_board(updated_board_obj)
+                        # updated_board_obj = network.send(msg)
+                        # self.update_board(updated_board_obj)
                         return
                 elif event.key == pg.K_DOWN:
                     if curr_y + 1 < TILEHEIGHT and self.board[curr_x][curr_y + 1] == 0:
                         self.player.move(dy=1)
                         msg = msg + DOWN
-                        updated_board_obj = network.send(msg)
-                        self.update_board(updated_board_obj)
+                        # updated_board_obj = network.send(msg)
+                        # self.update_board(updated_board_obj)
                         return
