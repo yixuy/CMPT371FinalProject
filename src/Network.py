@@ -41,14 +41,6 @@ class Network:
         except:
             # pass # Do nothing
             return None
-        # except IOError as e:
-        #     if e.errno != errno.EAGAIN and e.errno != errno.EWOULDBLOCK:
-        #         print('Reading error: {}'.format(e.errno))
-        #         sys.exit()
-        #     pass
-        # except Exception as e:
-        #     print('Reading error: {}'.format(str(e)))
-        #     sys.exit()
 
     def disconnect(self):
         try:
