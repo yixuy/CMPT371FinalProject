@@ -1,8 +1,12 @@
+from time import sleep
 from GameLogic.Util import WIDTH, HEIGHT
 import pygame
+import pickle
 from Network import Network
 from NetworkUtils import *
 import sys
+import errno
+import socket
 
 from GameLogic.Game import Game
 pygame.font.init()
@@ -34,6 +38,7 @@ def main(network, p):
     while run:
         clock.tick(60)  # Runs the game in 60fps
         try:
+
             '''READY PHASE (for client)
                 - Player stays in READY PHASE until Server says it GAMESTART'''
             # Get data from the server in 60fps (to update own board)
@@ -43,7 +48,7 @@ def main(network, p):
 
                 # Generate the Game object with the game map
                 if board:
-                    g = Game(board.get_board())
+                    g = Game(board)
 
                     win.fill((100, 100, 200))
                     font = pygame.font.SysFont("comicsans", 37)
@@ -55,7 +60,13 @@ def main(network, p):
                     gameRdy = False
                     gameStartPrep = True
 
-            if gameStartPrep is True:
+            while gameStartPrep is True:
+                # data = n.recv()
+                # print("NONBLOCKING:", data)
+                # if(data == GAME_START):
+                #     gameStart = True
+                #     gameStartPrep = False
+                #     break
                 for event in pygame.event.get():
                     if event.type == pygame.KEYDOWN:
                         if event.key == pygame.K_SPACE:
@@ -70,9 +81,13 @@ def main(network, p):
             if gameStart is True:
                 g.game_screen()
                 while True:
+                    updated_board_obj = n.send(GET_BOARD)
+                    g.update_board(updated_board_obj)
                     g.input_dir(network, player_num)
                     g.update()
                     g.draw()
+                    # updated_board_obj.print_board()
+                    # g.update_board(updated_board_obj)
 
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
@@ -81,10 +96,12 @@ def main(network, p):
                     pygame.quit()
                     sys.exit()
 
-        except:
+        except socket.error as e:
+            print("Error [Network.py]: ", e)
             run = False
             print("Couldn't get game")
             break
+            
 
 
 def menu_screen():

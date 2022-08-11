@@ -82,39 +82,58 @@ def threaded_client(p_conn, p_addr):
     player_num = 0
     while True:
         p_count = MAX_PLAYERS - len(free_clients_indices)
-        print(" ----------- PCOUNT: ", p_count)
+        # print(" ----------- PCOUNT: ", p_count)
         reply = ""
         try:
-            data = p_conn.recv(4096).decode()
-            print(data)
+            data = p_conn.recv(4096).decode().split(";")
+            # print(data)
             if not data:
-                break
+                continue
             else:
+                if data[0] == '':
+                    # print('no req')
+                    continue
+
                 # reset the game
-                if data == GAME_RESET:
+                elif data[0] == GAME_RESET:
                     print("data: 'reset' ")
                     reply = "Game reset"
 
                 # do the tile checking
-                elif data == GET_BOARD:
-                    print("data: client getting board from server")
+                elif data[0] == GET_BOARD:
+                    # print("data: client getting board from server")
                     reply = board
 
-                elif data == GAME_PREPSTART:
+                elif data[0] == GAME_PREPSTART:
                     print("Server: Preparing to start the game.")
+                    print(p_count)
                     if p_count >= 2:
                         reply = GAME_START
-                        broadcast(reply)
-                        continue
+                        gameStart = True
+                        print(reply)
+                        # broadcast(reply)
+                        # continue
                     else:
                         reply = 'Game requires minimum of 2 players.'
 
-                elif data == GAME_PLAY:
-                    # normal game info passing
-                    print("data: in game_play")
-                    reply = "hello world"
+                elif data[0] == GAME_PLAY:
+                    p_col = int(data[1])
+                    p_x = int(data[2])
+                    p_y = int(data[3])
+                    move = data[4]
+                    if move == Util.LEFT and board.get_item(p_x-1, p_y) == 0:
+                        board.set_cell(p_x-1, p_y, p_col)
+                    elif move == Util.RIGHT and board.get_item(p_x+1, p_y) == 0:
+                        board.set_cell(p_x+1, p_y, p_col)
+                    elif move == Util.UP and board.get_item(p_x, p_y-1) == 0:
+                        board.set_cell(p_x, p_y-1, p_col)
+                    elif move == Util.DOWN and board.get_item(p_x, p_y+1) == 0:
+                        board.set_cell(p_x, p_y+1, p_col)
+                    board.print_board()
+                    print()
+                    reply = board
 
-                elif data == PLAYER_JOIN:
+                elif data[0] == PLAYER_JOIN:
                     print("data: new player has joined.")
                     player_num = add_client_to_list(p_conn, p_addr)
                     if player_num == -1:
@@ -130,7 +149,7 @@ def threaded_client(p_conn, p_addr):
                         reply = "GameFull"
                         print("-----------   Game is full")
 
-                elif data == PLAYER_DISCONNECT:
+                elif data[0] == PLAYER_DISCONNECT:
                     # todo: remove them in clients, decrement player count
                     print("A client has disconnected.")
                     delete_client_from_list(p_conn, p_addr)
@@ -138,7 +157,7 @@ def threaded_client(p_conn, p_addr):
                 p_conn.sendall(pickle.dumps(reply))
 
         except:
-            break
+            continue
 
     print("[Player %s] - conn.close()" % player_num)
     p_conn.close()
@@ -160,6 +179,7 @@ while True:
         print("Starting new game...\nGenerating new map...")
         board = Board(Util.TILEWIDTH, Util.TILEHEIGHT)
         board.initialize_board()
+        board.print_board()
         gameOn = True  # When the first player 'starts' the game, other players just need to join (map generates once)
 
 

@@ -6,6 +6,7 @@ from NetworkUtils import IPADDRESS, PORTNUMBER
 class Network:
     def __init__(self):
         self.client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        # self.client.setblocking(False)
         self.server = IPADDRESS
         self.port = PORTNUMBER
         self.addr = (self.server, self.port)
@@ -23,6 +24,12 @@ class Network:
         try:
             self.client.send(data.encode())
             return pickle.loads(self.client.recv(2048*2))
+        except socket.error as e:
+            print("Error [Network.py]: ", e)
+    
+    def send_only(self, data):
+        try:
+            self.client.send(data.encode())
         except socket.error as e:
             print("Error [Network.py]: ", e)
 

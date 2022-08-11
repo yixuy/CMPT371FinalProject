@@ -54,14 +54,19 @@ class Game():
         self.all_sprites.draw(self.screen)
         pg.display.flip()
 
-
     def update_tile(self, x, y, colour_index):
         tile = self.grid[x][y]
         tile.set_colour(colour_index)
 
+    def update_board(self, updated_board_obj):
+        self.board_obj = updated_board_obj
+        self.board = updated_board_obj.get_board()
+        for row in range(TILEHEIGHT):
+            for col in range(TILEHEIGHT):
+                self.update_tile(row, col, self.board[row][col])
 
     def input_dir(self, network, player):
-        msg = GAME_PLAY + ";" + str(player) + ";"
+        msg = GAME_PLAY + ";" + str(player) + ";" + str(self.player.get_x()) + ";" + str(self.player.get_y()) + ";"
         for event in pg.event.get():
             if event.type == pg.QUIT:
                 self.quit()
@@ -72,48 +77,30 @@ class Game():
                 if event.key == pg.K_ESCAPE:
                     self.quit()
                 elif event.key == pg.K_LEFT:
-                    if curr_x + 1 < TILEWIDTH and self.board[curr_x-1][curr_y] != -1:
+                    if curr_x >= 1 and self.board[curr_x-1][curr_y] == 0:
+                        self.player.move(dx=-1)
                         msg = msg + LEFT
-                        network.send(msg)
+                        updated_board_obj = network.send(msg)
+                        self.update_board(updated_board_obj)
                         return
-                    # if curr_x >= 1 and self.board[curr_x - 1][curr_y] == 0:
-                    #     self.player.move(dx=-1)
-                    #     self.board_obj.change_tile(curr_x,curr_y,colour_index)
-                    #     self.update_tile(curr_x,curr_y,colour_index)
                 elif event.key == pg.K_RIGHT:
-                    if curr_x + 1 < TILEWIDTH and self.board[curr_x + 1][curr_y] != -1:
+                    if curr_x + 1 < TILEWIDTH and self.board[curr_x + 1][curr_y] == 0:
+                        self.player.move(dx=1)
                         msg = msg + RIGHT
-                        network.send(msg)
+                        updated_board_obj = network.send(msg)
+                        self.update_board(updated_board_obj)
                         return
-                    # if curr_x + 1 < TILEWIDTH and self.board[curr_x + 1][curr_y] == 0:
-                    #     self.player.move(dx=1)
-                    #     self.board_obj.change_tile(curr_x,curr_y,colour_index)
-                    #     self.update_tile(curr_x, curr_y, colour_index)
-
                 elif event.key == pg.K_UP:
-                    if curr_y >= 1 and self.board[curr_x][curr_y - 1] != -1:
+                    if curr_y >= 1 and self.board[curr_x][curr_y - 1] == 0:
+                        self.player.move(dy=-1)
                         msg = msg + UP
-                        network.send(msg)
+                        updated_board_obj = network.send(msg)
+                        self.update_board(updated_board_obj)
                         return
-                    # if curr_y >= 1 and self.board[curr_x][curr_y - 1] == 0:
-                    #     self.player.move(dy=-1)
-                    #     self.board_obj.change_tile(curr_x,curr_y,colour_index)
-                    #     self.update_tile(curr_x, curr_y, colour_index)
                 elif event.key == pg.K_DOWN:
-                    if curr_y + 1 < TILEHEIGHT and self.board[curr_x][curr_y + 1] != -1:
+                    if curr_y + 1 < TILEHEIGHT and self.board[curr_x][curr_y + 1] == 0:
+                        self.player.move(dy=1)
                         msg = msg + DOWN
-                        network.send(msg)
+                        updated_board_obj = network.send(msg)
+                        self.update_board(updated_board_obj)
                         return
-                    # if curr_y + 1 < TILEHEIGHT and self.board[curr_x][curr_y + 1] == 0:
-                    #     self.player.move(dy=1)
-                    #     self.board_obj.change_tile(curr_x,curr_y,colour_index)
-                    #     self.update_tile(curr_x, curr_y, colour_index)
-
-# board_test = Board(int(TILEWIDTH), int(TILEHEIGHT))
-# board_test.initialize_board()
-# g = Game(board_test)
-#
-# while True:
-#     g.game_screen()
-#     g.start_game()
-
