@@ -37,42 +37,44 @@ def listen_for_messages(network, player_num):
     while True:
         clock.tick(60)
         try:
-            print("THREAD: gameRdy state:", gameRdy)
-            print("THREAD: gameStartPrep state:", gameStartPrep)
+            # print("THREAD: gameRdy state:", gameRdy)
+            # print("THREAD: gameStartPrep state:", gameStartPrep)
 
             if gameStartPrep:
                 msg = network.recv()
-                print('THREAD: msg from server: %s' % msg)
-                if msg["code"] == GAME_START:
+                print('THREAD [gameStartPrep]: msg from server: %s' % msg)
+                msg_code = msg["code"]
+                if msg_code == GAME_START:
                     did_server_start_game = True
+                elif msg_code == GAME_NOT_ENOUGH_PLAYERS:
+                    print("[gameStartPrep] - Game can't start because not enough players ready.")
                     # break
             if gameStart:
                 msg = network.recv()
-                print("THREAD: gameStart, msg from server: %s" % msg)
-                # if msg["code"] == TESTING_PURPOSES+str(player_num):
-                #     print("TESTING received: %s" % msg)
-                if msg is not None and msg["code"] == BOARD:
-                # elif type(msg) is type(Board):
+                print("THREAD [gameStart]: gameStart, msg from server: %s" % msg)
+                if msg is not None and len(msg) > 0 and msg["code"] == BOARD:
                     if type(msg["data"]) == Board:
                         print("THREAD: BOARD RECEIVED")
                         g.update_board(msg["data"])
                         print("THREAD: CLIENT UPDATED THEIR BOARD")
             if gameRdy:
                 msg = network.recv()
-                print("THREAD: gameRdy")
+                print("THREAD [gameRdy]: gameRdy")
                 # print("msg: ", msg)
                 if msg["code"] == BOARD:
                     g.set_board(msg["data"])
                     print("THREAD: BOARD: ", g.get_board())
                     # did_player_rdy = True
                     time.sleep(1)
+
         except IOError as e:
             if e.errno != errno.EAGAIN and e.errno != errno.EWOULDBLOCK:
-                print('THREAD: Reading error: {}'.format(e.errno))
+                print('THREAD [IOError]: Reading error: {}'.format(e.errno))
                 sys.exit()
             continue
+
         except Exception as e:
-            print('THREAD: Reading error: {}'.format(str(e)))
+            print('THREAD [Exception]: Reading error: {}'.format(str(e)))
             sys.exit()
     print("Thread finished")
 
@@ -85,17 +87,15 @@ def main(network, p):
     player_num = p
     print("You are Player", player_num)
 
-    # gameRdy = True
-    # g = None
-
     t = Thread(target=listen_for_messages, args=(n, player_num))
     t.daemon = True
     t.start()
 
     while run:
         clock.tick(60)  # Runs the game in 60fps
-        try:
+        reply = {}
 
+        try:
             '''READY PHASE (for client)
                 - Player stays in READY PHASE until Server says it GAMESTART'''
             # Get data from the server in 60fps (to update own board)
@@ -104,7 +104,8 @@ def main(network, p):
                 # Get the board once from the server
                 if g is None:
                     g = Game()
-                    n.send_only(GET_BOARD)
+                    reply["code"] = GET_BOARD
+                    n.send_only(reply)
                     print('WE JUST HAVE SEND TO GET_BOARD')
                     print("----- ", g.get_board())
                 # Generate the Game object with the game map
@@ -133,7 +134,15 @@ def main(network, p):
                     for event in pygame.event.get():
                         if event.type == pygame.KEYDOWN:
                             if event.key == pygame.K_SPACE:
-                                n.send_only(GAME_PREPSTART)
+                                reply["code"] = GAME_PREPSTART
+                                n.send_only(reply)
+                        if event.type == pygame.QUIT:
+                            print("Player wants to quit...")
+                            run = False
+                            reply["code"] = PLAYER_DISCONNECT
+                            n.send_only(reply)
+                            pygame.quit()
+                            sys.exit()
 
 
             '''GAME PHASE (for client)'''
@@ -142,7 +151,8 @@ def main(network, p):
                 print("Starting gameStart: " + str(gameStart))
                 g.game_screen()
                 while True:
-                    n.send_only(GET_BOARD)
+                    reply["code"] = GET_BOARD
+                    n.send_only(reply)
                     # g.update_board(updated_board_obj)
                     g.input_dir(network, player_num)
                     g.update()
@@ -150,17 +160,24 @@ def main(network, p):
 
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
+                    print("Player wants to quit...")
                     run = False
-                    msg = n.send(PLAYER_DISCONNECT)
+                    reply["code"] = PLAYER_DISCONNECT
+                    n.send_only(reply)
+                    n.disconnect()
                     pygame.quit()
                     sys.exit()
 
+        # breaks the server side -> makes the message recieved in server to be empty,thus break
         except KeyboardInterrupt:
+            print("Keyboard interrupt: Closing game...")
+            # n.send_only({"code": PLAYER_DISCONNECT})
+            n.disconnect()
             pygame.quit()
             sys.exit()
 
         except Exception as e:
-            print('Reading error: {}'.format(str(e)))
+            print('Reading error [MAIN]: {}'.format(str(e)))
             print("Still continuing game loop as per normal.")
             continue
 
@@ -177,19 +194,22 @@ def menu_screen():
 
     while run:
         clock.tick(60)  # Makes the client game run in 60fps
-
+        reply = {}
         for event in pygame.event.get():
             if event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_SPACE:
                     print("button pressed - ready")
                     run = False
                     n.connect()
-                    new_game = n.send(PLAYER_JOIN)
+                    reply["code"] = PLAYER_JOIN
+                    new_game = n.send(reply)
                     print("new game received: ", new_game)
-                    if new_game["code"] == GAME_FULL or new_game["code"] == GAME_IN_PROGRESS:
+                    new_game_code = new_game["code"]
+                    if new_game_code == GAME_FULL or new_game_code == GAME_IN_PROGRESS:
                         print("Game is either full or in progress...\nClosing client connection...")
                         n.disconnect()
                         pygame.quit()
+                        sys.exit()
                     else:
                         n.set_player_num(new_game["data"])
                         # UI
@@ -200,8 +220,9 @@ def menu_screen():
                         pygame.display.update()
             if event.type == pygame.QUIT:
                 print("quitting game...")
-                pygame.quit()
                 run = False
+                pygame.quit()
+                sys.exit()
 
     main(n, n.get_player_num())
 

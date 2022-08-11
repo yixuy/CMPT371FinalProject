@@ -22,7 +22,8 @@ class Network:
 
     def send_only(self, data):
         try:
-            self.client.send(data.encode())
+            # self.client.send(data.encode())
+            self.client.send(pickle.dumps(data))
             return
         except socket.error as e:
             print("Error [Network.py]: ", e)
@@ -30,14 +31,9 @@ class Network:
     # When sending to Server, it will also hear back from the server
     def send(self, data):
         try:
-            self.client.send(data.encode())
+            # self.client.send(data.encode())
+            self.client.send(pickle.dumps(data))
             return pickle.loads(self.client.recv(2048*2))
-        except socket.error as e:
-            print("Error [Network.py]: ", e)
-    
-    def send_only(self, data):
-        try:
-            self.client.send(data.encode())
         except socket.error as e:
             print("Error [Network.py]: ", e)
 

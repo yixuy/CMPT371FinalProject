@@ -62,14 +62,18 @@ def add_client_to_list(p_conn, p_addr):
     return None
 
 
-def delete_client_from_list(p_conn, p_addr):
+def delete_client_from_list(p_conn):
+    # clients format: [ [conn, ip, port], [conn, ip, port], etc ], etc ]
     global player_count
     try:
+        print("len(clients): ", len(clients))
         for x in range(0, len(clients)):
-            if clients[x][1] == p_addr[0] and clients[x][1] == p_addr[1]:
+            if clients[x][0] == p_conn:
                 clients[x] = None
                 free_clients_indices.append(x)
                 player_count -= 1
+                print("Client deleted successfully! free_clients_indices added back to list: ", x)
+                break
     except:
         pass
 
@@ -93,30 +97,31 @@ def threaded_client(p_conn, p_addr):
         # print(" ----------- player_count: ", player_count)
         reply = {}
         try:
-            data = p_conn.recv(4096).decode().split(";")
-
-            print("DECODED data", data)
-            if not data:
-                continue
+            # data = p_conn.recv(4096).decode().split(";")
+            # data = pickle.loads(p_conn.recv(4096))
+            message = p_conn.recv(4096)
+            if not message:
+                print("THREAD: message is empty")
+                # continue
+                delete_client_from_list(p_conn)
+                break
             else:
-                # if data[0] == '':
-                #     # print('no req')
-                #     continue
-
+                data = pickle.loads(message)
+                data_code = data["code"]
                 # reset the game
-                if data[0] == GAME_RESET:
+                if data_code == GAME_RESET:
                     print("data: 'reset' ")
                     reply["code"] = "Game reset"
 
                 # do the tile checking
-                elif data[0] == GET_BOARD:
+                elif data_code == GET_BOARD:
                     # print("data: client getting board from server")
                     reply["code"] = BOARD
                     reply["data"] = board
 
-                elif data[0] == GAME_PREPSTART:
+                elif data_code == GAME_PREPSTART:
                     print("Server: Preparing to start the game.")
-                    print("Current p_count: ", p_count)
+                    # print("Current p_count: ", p_count)
                     if player_count >= 2:
                         print("Server: Initiating GAME_START")
                         reply["code"] = GAME_START
@@ -124,14 +129,15 @@ def threaded_client(p_conn, p_addr):
                         broadcast(reply)
                         continue
                     else:
-                        reply = 'Game requires minimum of 2 players.'
+                        reply["code"] = GAME_NOT_ENOUGH_PLAYERS
+                        # reply = 'Game requires minimum of 2 players.'
 
                 # When player makes a move, server updates the board, and sends back the new board
-                elif data[0] == GAME_PLAY:
-                    p_col = int(data[1])
-                    p_x = int(data[2])
-                    p_y = int(data[3])
-                    move = data[4]
+                elif data_code == GAME_PLAY:
+                    p_col = int(data["player"])
+                    p_x = int(data["x"])
+                    p_y = int(data["y"])
+                    move = data["move"]
                     if move == Util.LEFT and board.get_item(p_x-1, p_y) == 0:
                         board.set_cell(p_x-1, p_y, p_col)
                     elif move == Util.RIGHT and board.get_item(p_x+1, p_y) == 0:
@@ -147,7 +153,7 @@ def threaded_client(p_conn, p_addr):
                     continue
                     # reply = TESTING_PURPOSES+str(player_num)
 
-                elif data[0] == PLAYER_JOIN:
+                elif data_code == PLAYER_JOIN:
                     print("data: new player has joined.")
                     player_num = add_client_to_list(p_conn, p_addr)
                     if player_num == -1:
@@ -165,16 +171,18 @@ def threaded_client(p_conn, p_addr):
                         reply["code"] = GAME_FULL
                         print("-----------   Game is full")
 
-                elif data[0] == PLAYER_DISCONNECT:
+                elif data_code == PLAYER_DISCONNECT:
                     # todo: remove them in clients, decrement player count
                     print("A client has disconnected.")
-                    delete_client_from_list(p_conn, p_addr)
+                    delete_client_from_list(p_conn)
+                    break
 
                 p_conn.sendall(pickle.dumps(reply))
 
-        except Exception as e:
-            print('Server - Reading error: {}'.format(str(e)))
+        except Exception as err:
+            print('Server - Reading error: {}'.format(str(err)))
             continue
+            # break
 
     print("[Player %s] - conn.close()" % player_num)
     p_conn.close()

@@ -73,7 +73,8 @@ class Game():
         return self.board
 
     def input_dir(self, network, player):
-        msg = GAME_PLAY + ";" + str(player) + ";" + str(self.player.get_x()) + ";" + str(self.player.get_y()) + ";"
+        msg = {"code": GAME_PLAY, "player": str(player), "x": self.player.get_x(), "y": self.player.get_y()}
+        # msg = GAME_PLAY + ";" + str(player) + ";" + str(self.player.get_x()) + ";" + str(self.player.get_y()) + ";"
         for event in pg.event.get():
             if event.type == pg.QUIT:
                 self.quit()
@@ -86,7 +87,7 @@ class Game():
                 elif event.key == pg.K_LEFT:
                     if curr_x >= 1 and self.board[curr_x-1][curr_y] != -1:
                         self.player.move(dx=-1)
-                        msg = msg + LEFT
+                        msg["move"] = LEFT
                         # updated_board_obj = network.send(msg)
                         # self.update_board(updated_board_obj)
                         network.send_only(msg)
@@ -94,7 +95,7 @@ class Game():
                 elif event.key == pg.K_RIGHT:
                     if curr_x + 1 < TILEWIDTH and self.board[curr_x + 1][curr_y] != -1:
                         self.player.move(dx=1)
-                        msg = msg + RIGHT
+                        msg["move"] = RIGHT
                         # updated_board_obj = network.send(msg)
                         # self.update_board(updated_board_obj)
                         network.send_only(msg)
@@ -102,7 +103,7 @@ class Game():
                 elif event.key == pg.K_UP:
                     if curr_y >= 1 and self.board[curr_x][curr_y - 1] != -1:
                         self.player.move(dy=-1)
-                        msg = msg + UP
+                        msg["move"] = UP
                         # updated_board_obj = network.send(msg)
                         # self.update_board(updated_board_obj)
                         network.send_only(msg)
@@ -110,7 +111,7 @@ class Game():
                 elif event.key == pg.K_DOWN:
                     if curr_y + 1 < TILEHEIGHT and self.board[curr_x][curr_y + 1] != -1:
                         self.player.move(dy=1)
-                        msg = msg + DOWN
+                        msg["move"] = DOWN
                         # updated_board_obj = network.send(msg)
                         # self.update_board(updated_board_obj)
                         network.send_only(msg)
