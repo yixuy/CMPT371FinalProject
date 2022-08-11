@@ -221,6 +221,8 @@ def menu_screen():
             if event.type == pygame.QUIT:
                 print("quitting game...")
                 run = False
+                n.send_only({"code": PLAYER_DISCONNECT})
+                n.disconnect()
                 pygame.quit()
                 sys.exit()
 

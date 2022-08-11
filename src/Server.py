@@ -100,7 +100,8 @@ def threaded_client(p_conn, p_addr):
             # data = p_conn.recv(4096).decode().split(";")
             # data = pickle.loads(p_conn.recv(4096))
             message = p_conn.recv(4096)
-            if not message:
+            # print("len(message) = ", len(message))
+            if len(message) <= 0:
                 print("THREAD: message is empty")
                 # continue
                 delete_client_from_list(p_conn)
@@ -183,6 +184,8 @@ def threaded_client(p_conn, p_addr):
             print('Server - Reading error: {}'.format(str(err)))
             continue
             # break
+        # except EOFError as err:
+        #     if err.ran
 
     print("[Player %s] - conn.close()" % player_num)
     p_conn.close()
