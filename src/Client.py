@@ -76,7 +76,6 @@ def main(network, p):
             # Get data from the server in 60fps (to update own board)
             if gameRdy is True:
                 # Get the board once from the server
-                print('HUGE TESTING 12334567890120938019283091238783456873465')
                 board = n.send(GET_BOARD)
                 print("board", board)
 
@@ -96,7 +95,6 @@ def main(network, p):
                     gameStartPrep = True
 
             if gameStartPrep is True:
-
                 if did_server_start_game:
                     gameStartPrep = False
                     gameStart = True
