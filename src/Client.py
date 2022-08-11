@@ -101,7 +101,7 @@ def main(network, p):
             run = False
             print("Couldn't get game")
             break
-            
+
 
 
 def menu_screen():
