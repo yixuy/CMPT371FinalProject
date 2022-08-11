@@ -46,7 +46,7 @@ def main(network, p):
 
                 # Generate the Game object with the game map
                 if board:
-                    g = Game(board.get_board())
+                    g = Game(board)
 
                     win.fill((100, 100, 200))
                     font = pygame.font.SysFont("comicsans", 37)
