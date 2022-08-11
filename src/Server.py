@@ -76,9 +76,7 @@ def delete_client_from_list(p_conn, p_addr):
 
 
 def broadcast(msg):
-    # print("In broadcast()")
     for client in clients:
-        # print("---- client: ", client)
         print("broadcasting ", client[0])
         if client is not None:
             my_conn = client[0]
@@ -141,9 +139,10 @@ def threaded_client(p_conn, p_addr):
                         reply = "GameFull"
                         print("-----------   Game is full")
 
+                # TODO: Remove once actual implementation is implemented (just for visual test cues)
                 elif data == 'GamePlay;2;UP' or data == 'GamePlay;2;DOWN' or data == 'GamePlay;2;RIGHT' or data == 'GamePlay;2;LEFT':
                     reply = TESTING_PURPOSES+'2'
-                    # broadcast(reply)
+                    # broadcast(reply)      # will be used in the future
                     # continue
                 elif data == 'GamePlay;1;UP' or data == 'GamePlay;1;DOWN' or data == 'GamePlay;1;RIGHT' or data == 'GamePlay;1;LEFT':
                     reply = TESTING_PURPOSES+'1'
@@ -155,7 +154,8 @@ def threaded_client(p_conn, p_addr):
 
                 p_conn.sendall(pickle.dumps(reply))
 
-        except:
+        except Exception as e:
+            print('Server - Reading error: {}'.format(str(e)))
             continue
 
     print("[Player %s] - conn.close()" % player_num)
@@ -178,6 +178,9 @@ while True:
         print("Starting new game...\nGenerating new map...")
         board = Board(Util.TILEWIDTH, Util.TILEHEIGHT)
         board.initialize_board()
+        some_board = board.get_board()
+        print("board: %s" % board)
+        print("Some board: %s" % some_board)
         gameOn = True  # When the first player 'starts' the game, other players just need to join (map generates once)
 
 

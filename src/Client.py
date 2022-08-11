@@ -25,25 +25,13 @@ pygame.display.set_caption("Client")
         - If client passed the tile checking, client will update its own board (by setting the tile colour)
         '''
 
-import time
 def listen_for_messages(network, player_num):
     global did_server_start_game, gameStartPrep, gameStart
     print("Started listen_for_messages() Thread!")
     clock = pygame.time.Clock()
     while True:
         clock.tick(30)
-        # print("did_server_start_game state: ", did_server_start_game)
         try:
-            # msg = network.recv()
-            # print('msg from server: %s' % msg)
-            # if msg == GAME_START:
-            #     did_server_start_game = True
-            # elif msg == TESTING_PURPOSES:
-            #     print("TESTING received: %s" % msg)
-
-            # if did_server_start_game:
-            #     print('did_server_start_game is True!')
-            #     break
             if gameStartPrep:
                 msg = network.recv()
                 print('msg from server: %s' % msg)
@@ -74,8 +62,6 @@ def main(network, p):
     print("You are Player", player_num)
 
     gameRdy = True
-    # gameStart = False
-    # gameStartPrep = False
     g = None
 
     t = Thread(target=listen_for_messages, args=(n, player_num))
@@ -90,11 +76,13 @@ def main(network, p):
             # Get data from the server in 60fps (to update own board)
             if gameRdy is True:
                 # Get the board once from the server
+                print('HUGE TESTING 12334567890120938019283091238783456873465')
                 board = n.send(GET_BOARD)
+                print("board", board)
 
                 # Generate the Game object with the game map
                 if board:
-                    g = Game(board.get_board())
+                    g = Game(board)
 
                     win.fill((100, 100, 200))
                     font = pygame.font.SysFont("comicsans", 37)
@@ -112,14 +100,12 @@ def main(network, p):
                 if did_server_start_game:
                     gameStartPrep = False
                     gameStart = True
-                    # t.join()
                 else:
                     for event in pygame.event.get():
                         if event.type == pygame.KEYDOWN:
                             if event.key == pygame.K_SPACE:
                                 n.send_only(GAME_PREPSTART)
 
-            # ERROR: The person who starts the game, cannot play (game crash). However, the other player can move/play
 
             '''GAME PHASE (for client)'''
             # Actual Gameplay Logic
@@ -144,10 +130,8 @@ def main(network, p):
             sys.exit()
 
         except Exception as e:
-            # run = False
             print('Reading error: {}'.format(str(e)))
             print("Still continuing game loop as per normal.")
-            # break
             continue
 
 
@@ -196,3 +180,4 @@ def menu_screen():
 
 while True:
     menu_screen()
+
