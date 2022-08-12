@@ -1,3 +1,4 @@
+import pygame
 from NetworkUtils import GAME_PLAY, PLAYER_DISCONNECT
 import pygame as pg
 import sys
@@ -9,13 +10,21 @@ from .Tile import *
 class Game:
     def __init__(self):
         pg.init()
-        self.screen = pg.display.set_mode((WIDTH, HEIGHT))
+        self.screen = pg.display.set_mode((WIDTH, HEIGHT + 80))
+        self.bottom_screen_rect_obj = pg.draw.rect(self.screen, (0, 200, 0), (0, HEIGHT, WIDTH, 80))  # Only for timer UI rn
         pg.display.set_caption(TITLE)
         self.clock = pg.time.Clock()
         self.board = None
         self.board_obj = None
         self.grid = [[0 for i in range(TILEWIDTH)] for j in range(TILEHEIGHT)]
         pg.key.set_repeat(500, 100)
+
+        # Might be temporary - allows each client to run their own timer (for clock UI testing purposes)
+        self.time_delay = 1000
+        self.timer = 150
+        self.timer_event = pygame.USEREVENT + 1
+        pg.time.set_timer(self.timer_event, self.time_delay)
+        self.font = pygame.font.SysFont("Consolas", 37)
 
     def game_screen(self):
         self.all_sprites = pg.sprite.Group()
@@ -52,9 +61,16 @@ class Game:
             pg.draw.line(self.screen, LIGHTGREY, (0, y), (WIDTH, y))
 
     def draw(self):
+        self.update_timer()
         self.draw_grid()
         self.all_sprites.draw(self.screen)
         pg.display.flip()
+
+    def update_timer(self):
+        clock_text = self.font.render(str(self.timer), True, (0, 0, 0))
+        text_rect = clock_text.get_rect(center=self.bottom_screen_rect_obj.center)
+        self.bottom_screen_rect_obj = pg.draw.rect(self.screen, (0, 255, 0), (0, HEIGHT, WIDTH, 80))  # Redraws the rect (to clear out previous timer text)
+        self.screen.blit(clock_text, text_rect)
 
     def update_tile(self, x, y, colour_index):
         tile = self.grid[x][y]
@@ -76,6 +92,7 @@ class Game:
         return self.board
 
     def input_dir(self, network, player):
+
         msg = {
                 "code": GAME_PLAY,
                 "player": str(player),
@@ -83,6 +100,9 @@ class Game:
                 "y": self.player.get_y()
                }
         for event in pg.event.get():
+            if event.type == self.timer_event:
+                self.timer -= 1
+
             if event.type == pg.QUIT:
                 network.send_only({"code": PLAYER_DISCONNECT})
                 self.quit()

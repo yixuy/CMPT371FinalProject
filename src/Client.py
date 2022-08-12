@@ -1,7 +1,7 @@
 import errno
 from threading import Thread
 
-from GameLogic.Util import WIDTH, HEIGHT
+from GameLogic.Util import WIDTH, HEIGHT, GAME_STARTING_TIME, COLOURS
 from GameLogic.Board import Board
 import pygame
 from Network import Network
@@ -21,6 +21,7 @@ pygame.font.init()
 
 win = pygame.display.set_mode((WIDTH, HEIGHT))
 pygame.display.set_caption("Client")
+font = pygame.font.SysFont("comicsans", 37)
 
 '''Client's Game Implementation:
         - Onces client ready, waits for Server to signal that game is starting
@@ -93,6 +94,21 @@ def close_game(network):
     pygame.quit()
     sys.exit()
 
+def game_start_count_down():
+    count_down = GAME_STARTING_TIME
+    time_delay = 1000
+    timer_event = pygame.USEREVENT + 1
+    pygame.time.set_timer(timer_event, time_delay)
+    while count_down > 0:
+        for event in pygame.event.get():
+            if event.type == timer_event:
+                count_down -= 1
+        win.fill(COLOURS[0])
+        text = font.render("GAME STARTING IN:", True, (255, 0, 0))
+        text2 = font.render(str(count_down), True, (255, 0, 0))
+        win.blit(text, text.get_rect(center=(WIDTH / 2, (HEIGHT / 2) - 10)))
+        win.blit(text2, text2.get_rect(center=(WIDTH / 2, (HEIGHT / 2) + 40)))
+        pygame.display.flip()
 
 def main(network, p):
     global gameStartPrep, did_server_start_game, gameStart, gameRdy, g
@@ -101,6 +117,7 @@ def main(network, p):
     n = network
     player_num = p
     print("You are Player", player_num)
+
 
     t = Thread(target=listen_for_messages, args=(n, player_num))
     t.daemon = True
@@ -126,17 +143,18 @@ def main(network, p):
                     gameRdy = False
 
                     win.fill((100, 100, 200))
-                    font = pygame.font.SysFont("comicsans", 37)
                     text = font.render("Player is Ready!", True, (255, 0, 0))
                     text2 = font.render("Press Space to start game!", True, (255, 0, 0))
                     win.blit(text, (15, 150))
                     win.blit(text2, (15, 230))
                     pygame.display.flip()
 
+
             if gameStartPrep is True:
                 if did_server_start_game:
                     gameStart = True
                     gameStartPrep = False
+
                 else:
                     for event in pygame.event.get():
                         if event.type == pygame.KEYDOWN:
@@ -152,10 +170,11 @@ def main(network, p):
             # Actual Gameplay Logic
             if gameStart is True:
                 print("Starting gameStart: " + str(gameStart))
+                # ** Wait time till game starts for all players ( Uncomment when ready to use )
+                # game_start_count_down()
                 g.game_screen()
+
                 while True:
-                    # reply["code"] = GET_BOARD
-                    # n.send_only(reply)  # *This is causing the server to keep receiving empty message once ctrl+c
                     g.input_dir(network, player_num)
                     g.update()
                     g.draw()
