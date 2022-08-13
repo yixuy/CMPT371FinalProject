@@ -134,6 +134,7 @@ def main(network, p):
                 # Get the board once from the server
                 if g is None:
                     g = Game()
+                    g.set_player_num(player_num)
                     reply["code"] = GET_BOARD
                     n.send_only(reply)
 

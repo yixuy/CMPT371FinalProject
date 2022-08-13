@@ -95,7 +95,6 @@ def threaded_client(p_conn, p_addr):
     print("SERVER: In threaded_client thread")
     player_num = 0
     while True:
-        p_count = MAX_PLAYERS - len(free_clients_indices)
 
         reply = {}
         try:
@@ -122,6 +121,17 @@ def threaded_client(p_conn, p_addr):
                 elif data_code == GAME_PREPSTART:
                     print("Server: Preparing to start the game.")
                     if player_count >= 2:
+                        board.set_cell(0, 0, 1)
+                        if player_count == 2:
+                            print("CELL IS SET HEREE")
+                            board.set_cell(15, 0, 2)
+                        if player_count == 3:
+                            board.set_cell(15, 0, 2)
+                            board.set_cell(0, 15, 3)
+                        if player_count == 4:
+                            board.set_cell(15, 0, 2)
+                            board.set_cell(0, 15, 3)
+                            board.set_cell(15, 15, 4)
                         print("Server: Initiating GAME_START")
                         reply["code"] = GAME_START
                         print(reply)
