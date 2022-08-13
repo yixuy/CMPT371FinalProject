@@ -13,16 +13,9 @@ class Player(pg.sprite.Sprite):
         self.image = pg.Surface((TILESIZE-1, TILESIZE-1))
         self.x = x
         self.y = y
-        self.x_rect = 1
-        self.y_rect = 1
         self.image.fill(COLOURS[self.colour_index])
-        if self.x == TILEWIDTH-1:
-            self.x_rect = self.x-15
-        if self.y == TILEHEIGHT-1:
-            self.y_rect = self.y-15
-        self.rect = pg.draw.rect(self.image, "black", [self.x_rect,self.y_rect,30,30],1)
-        print(self.x)
-        print(self.y)
+        self.rect = pg.draw.rect(self.image, "black", [1,1,30,30],1)
+
 
     def move(self, dx=0, dy=0):
         if 0 <= self.x + dx < TILEWIDTH and 0 <= self.y + dy < TILEWIDTH:
