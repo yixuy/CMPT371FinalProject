@@ -1,6 +1,6 @@
 COLOURS = {
     # WHITE
-    0:(255, 255, 255),
+    0: (255, 255, 255),
     # BLACK
     -1: (0, 0, 0),
     # RED
@@ -8,9 +8,9 @@ COLOURS = {
     # BLUE
     2: (0, 0, 255),
     # GREEN 
-    3: (0,255,0),
+    3: (0, 255, 0),
     # YELLOW
-    4: (255,255,0)
+    4: (255, 255, 0)
 }
 DARKGREY = (40, 40, 40)
 LIGHTGREY = (100, 100, 100)
@@ -27,3 +27,5 @@ UP = "UP"
 RIGHT = "RIGHT"
 LEFT = "LEFT"
 DOWN = "DOWN"
+
+GAME_STARTING_TIME = 5     # 5 seconds

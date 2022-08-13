@@ -1,5 +1,6 @@
 import socket
-import pickle
+# import pickle
+import _pickle as pickle
 from NetworkUtils import IPADDRESS, PORTNUMBER
 
 
@@ -18,17 +19,26 @@ class Network:
         except:
             pass
 
+    def send_only(self, data):
+        try:
+            # self.client.sendall(data)
+            self.client.sendall(pickle.dumps(data))
+            return
+        except socket.error as e:
+            print("Error [Network.py]: ", e)
+
     # When sending to Server, it will also hear back from the server
     def send(self, data):
         try:
-            self.client.send(data.encode())
-            return pickle.loads(self.client.recv(2048*2))
+            # self.client.sendall(data)
+            self.client.sendall(pickle.dumps(data))
+            return pickle.loads(self.client.recv(2048 * 2))
         except socket.error as e:
             print("Error [Network.py]: ", e)
 
     def recv(self):
         try:
-            return pickle.loads(self.client.recv(2048*2))
+            return pickle.loads(self.client.recv(2048 * 2))
         except:
             # pass # Do nothing
             return None
