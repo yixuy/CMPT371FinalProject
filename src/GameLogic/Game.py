@@ -17,6 +17,8 @@ class Game:
         self.board = None
         self.board_obj = None
         self.grid = [[0 for i in range(TILEWIDTH)] for j in range(TILEHEIGHT)]
+        self.player = None
+        self.player_num = 0
         pg.key.set_repeat(500, 100)
 
         # Might be temporary - allows each client to run their own timer (for clock UI testing purposes)
@@ -26,9 +28,9 @@ class Game:
         pg.time.set_timer(self.timer_event, self.time_delay)
         self.font = pygame.font.SysFont("Consolas", 37)
 
-    def game_screen(self):
+
+    def setup_grid(self):
         self.all_sprites = pg.sprite.Group()
-        # draw the wall
         for row in range(0, int(TILEWIDTH)):
             for col in range(0, int(TILEHEIGHT)):
                 tile = None
@@ -38,7 +40,18 @@ class Game:
                     tile = Tile(self, row, col, 0)
                 self.grid[row][col] = tile
 
-        self.player = Player(self, 0, 0, 1)
+    def set_player_num(self, player_num):
+        self.player_num = player_num
+
+    def game_screen(self):
+        if (self.player_num == 1):
+            self.player = Player(self, 0, 0, self.player_num)
+        if (self.player_num == 2):
+            self.player = Player(self, 15, 0, self.player_num)
+        if (self.player_num == 3):
+            self.player = Player(self, 0, 15, self.player_num)
+        if (self.player_num == 4):
+            self.player = Player(self, 15, 15, self.player_num)
 
     def start_game(self):
         while True:
@@ -79,6 +92,7 @@ class Game:
     def set_board(self, new_board_obj):
         self.board_obj = new_board_obj
         self.board = new_board_obj.get_board()
+        self.setup_grid()
 
     def update_board(self, updated_board_obj):
         self.board_obj = updated_board_obj

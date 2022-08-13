@@ -14,7 +14,7 @@ class Player(pg.sprite.Sprite):
         self.x = x
         self.y = y
         self.image.fill(COLOURS[self.colour_index])
-        self.rect = pg.draw.rect(self.image, "black", [self.x+1,self.y+1,30,30],1)
+        self.rect = pg.draw.rect(self.image, "black", [self.x,self.y,30,30],1)
 
 
     def move(self, dx=0, dy=0):
