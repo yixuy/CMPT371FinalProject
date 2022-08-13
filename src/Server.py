@@ -1,25 +1,21 @@
-import pickle
 import socket
-import time
-import datetime
 from _thread import *
-from threading import Timer
-
-import GameLogic.Util as Util
+import _pickle as pickle   # This is pickle with c implementation (a lot faster) vs python based pickle
 from GameLogic.Board import Board
+import GameLogic.Util as Util
 from NetworkUtils import *
 
+
+MAX_PLAYERS = 4
 player_count = 0
-are_players_ready = False
-is_game_running = False
+gameOn = False
+gameStart = False
 board = None
 
 free_clients_indices = [0, 1, 2, 3]
 clients = [None] * len(free_clients_indices)
+player_scores = [None] * len(free_clients_indices)
 
-timer = None
-is_timer_running = False
-remaining_game_time = REMAINING_TIME_MSG + str(TOTAL_GAME_TIME_IN_SECONDS) + "s"
 
 s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
@@ -31,10 +27,10 @@ except socket.error as e:
 
 # queue up as many as 4 connect requests (the normal max)
 # before refusing outside connections.
-s.listen(1)  # might need to increase (?)
+s.listen(4)  # Queue up to max 4 requests (in case of burst connections)
 print("Waiting for a connection, Server Started")
 
-"""
+'''
 Server:
     Receives new coords from Player1
     Checks new coords tile 
@@ -43,12 +39,13 @@ Server:
         Else if tile not taken:
             Updates the Server tile to the Player1 colour (now tile is taken is taken by Player1)
             Broadcast Player1 new coords & coloured tile info to other players
-"""
+'''
 
 
 def add_client_to_list(p_conn, p_addr):
+    global player_count
     print("Server: using add_client_to_list()")
-    # clients format: [ [conn, ip, port], [conn, ip, port], etc ],
+    # clients format: [ [conn, ip, port], [conn, ip, port], etc ], etc ]
     # Note: clients indices are kept the same (even when removed)
 
     # This is to check if client is already connected (to counter the potential bugs on client side)
@@ -58,29 +55,41 @@ def add_client_to_list(p_conn, p_addr):
         return -1
 
     if len(free_clients_indices) > 0:
+        player_count += 1
         free_clients_indices.sort()  # so the smallest player number is preferred
         to_use_i = free_clients_indices.pop(0)
         clients[to_use_i] = [p_conn, p_addr[0], p_addr[1]]
-        player_num = to_use_i + 1  # bcs indices start from 0
+        player_num = to_use_i + 1  # b/c indices start from 0
         return player_num
     return None
 
 
-def delete_client_from_list(p_addr):
+def delete_client_from_list(p_conn):
+    # clients format: [ [conn, ip, port], [conn, ip, port], etc ], etc ]
+    global player_count
     try:
         for x in range(0, len(clients)):
-            if clients[x][1] == p_addr[0] and clients[x][1] == p_addr[1]:
+            print("clients x: ", x)
+            if clients[x] is None:
+                continue
+            if clients[x][0] == p_conn:
                 clients[x] = None
                 free_clients_indices.append(x)
+                player_count -= 1
+                p_conn.close()
+                print("Client deleted successfully! free_clients_indices added back to list: ", x)
+                break
     except:
         pass
 
 
 def broadcast(msg):
+    print("clients: ", clients)
     for client in clients:
         if client is not None:
             my_conn = client[0]
             my_conn.send(pickle.dumps(msg))
+    print("Finished broadcast()")
 
 
 def threaded_client(p_conn, p_addr):
@@ -88,129 +97,118 @@ def threaded_client(p_conn, p_addr):
     player_num = 0
     while True:
         p_count = MAX_PLAYERS - len(free_clients_indices)
-        print(" ----------- PCOUNT:", p_count)
-        reply = ""
+
+        reply = {}
         try:
-            data = p_conn.recv(4096).decode()
-            print(data)
-            if not data:
+            data = pickle.loads(p_conn.recv(2048))
+
+            if len(data) <= 0:      # Watch out if this break statement causes any unintended problems
+                print("THREAD: message is empty")
+                delete_client_from_list(p_conn)
                 break
             else:
+                data_code = data["code"]
+
                 # reset the game
-                if data == GAME_RESET:
+                if data_code == GAME_RESET:
                     print("data: 'reset' ")
-                    reply = "Game reset"
+                    reply["code"] = "Game reset"
 
                 # do the tile checking
-                elif data == GET_BOARD:
-                    print("data: client getting board from server")
-                    reply = board
+                elif data_code == GET_BOARD:
+                    # print("data: client getting board from server")
+                    reply["code"] = BOARD
+                    reply["data"] = board
 
-                elif data == GAME_PREPSTART:
+                elif data_code == GAME_PREPSTART:
                     print("Server: Preparing to start the game.")
-                    if p_count >= 2:
-                        reply = GAME_START
+                    if player_count >= 2:
+                        print("Server: Initiating GAME_START")
+                        reply["code"] = GAME_START
+                        print(reply)
                         broadcast(reply)
                         continue
                     else:
-                        reply = 'Game requires minimum of 2 players.'
+                        reply["code"] = GAME_NOT_ENOUGH_PLAYERS
 
-                elif data == GAME_PLAY:
-                    # normal game info passing
-                    print("data: in game_play")
-                    reply = "hello world"
+                # When player makes a move, server updates the board, and sends back the new board
+                elif data_code == GAME_PLAY:
+                    p_col = int(data["player"])
+                    p_x = int(data["x"])
+                    p_y = int(data["y"])
+                    move = data["move"]
+                    if move == Util.LEFT and board.get_item(p_x-1, p_y) == 0:
+                        board.set_cell(p_x-1, p_y, p_col)
+                    elif move == Util.RIGHT and board.get_item(p_x+1, p_y) == 0:
+                        board.set_cell(p_x+1, p_y, p_col)
+                    elif move == Util.UP and board.get_item(p_x, p_y-1) == 0:
+                        board.set_cell(p_x, p_y-1, p_col)
+                    elif move == Util.DOWN and board.get_item(p_x, p_y+1) == 0:
+                        board.set_cell(p_x, p_y+1, p_col)
+                    board.print_board()
+                    print()
+                    reply["code"] = BOARD
+                    reply["data"] = board
+                    broadcast(reply)
+                    continue
 
-                elif data == PLAYER_JOIN:
+                elif data_code == PLAYER_JOIN:
                     print("data: new player has joined.")
                     player_num = add_client_to_list(p_conn, p_addr)
                     if player_num == -1:
+                        print("player could not join.")
                         break
-                    reply = player_num
-                    print("player number:", player_num)
+
+                    reply["code"] = PLAYER_CAN_JOIN
+                    reply["data"] = player_num
+                    print("player number: ", player_num)
 
                     # Both of these checks will not allow player to join the game.
                     # if isGameInProgress:
                     #     reply = GAME_IN_PROGRESS
                     if player_num is None:
-                        reply = "GameFull"
+                        reply["code"] = GAME_FULL
                         print("-----------   Game is full")
 
-                elif data == PLAYER_DISCONNECT:
+                elif data_code == PLAYER_DISCONNECT:
                     # todo: remove them in clients, decrement player count
-                    print("A client has disconnected.")
-                    delete_client_from_list(p_addr)
-
-                elif data == REMAINING_GAMETIME:
-                    reply = remaining_game_time
+                    print("[Player %s]: A client has disconnected." % player_num)
+                    delete_client_from_list(p_conn)
+                    break
 
                 p_conn.sendall(pickle.dumps(reply))
 
-        except:
+        except EOFError as err:
+            delete_client_from_list(p_conn)
             break
 
+        except Exception as err:
+            print('Server - Reading error: {}'.format(str(err)))
+            continue
+
+
     print("[Player %s] - conn.close()" % player_num)
-    p_conn.close()
-
-
-def reset_timer():
-    global is_timer_running, timer
-    is_timer_running = False
-    if timer is not None and timer.is_alive():
-        timer.cancel()
-
-
-def start_timer():
-    global is_timer_running, timer
-    is_timer_running = True
-    game_duration = datetime.datetime.strptime(time.strftime("%H:%M:%S"), "%H:%M:%S") + \
-                    datetime.timedelta(0, TOTAL_GAME_TIME_IN_SECONDS + 1)
-
-    def display(msg):
-        global remaining_game_time
-        remaining_seconds = int(
-            (game_duration - datetime.datetime.strptime(time.strftime("%H:%M:%S"), "%H:%M:%S")).total_seconds())
-        message = msg + str(remaining_seconds) + "s"
-        print(message)
-        remaining_game_time = message
-
-    class RepeatTimer(Timer):
-        def run(self):
-            while not self.finished.wait(self.interval):
-                self.function(*self.args, **self.kwargs)
-
-    timer = RepeatTimer(1, display, [REMAINING_TIME_MSG])
-    timer.start()
-    time.sleep(TOTAL_GAME_TIME_IN_SECONDS + 2)  # Let the timer "run" for the duration of the game until it reaches '0'
-    timer.cancel()
+    # p_conn.close()
 
 
 while True:
-    connection, address = s.accept()
+    conn, addr = s.accept()
     avail_spots = len(free_clients_indices)
 
-    if not is_timer_running:
-        start_new_thread(start_timer, ())
-
-    """START PHASE"""
-    # Server begins the game
-    if is_game_running is True:
-        # if not timer_running:
-        #     start_timer()
+    '''START PHASE'''
+    # Server begins to start the game
+    if gameStart is True:
         if avail_spots < 2:
-            is_game_running = False
-            # reset_timer()  # reset the timer
-    else:  # Game is not running as the flag is false; reset the timer
-        # reset_timer()
-        pass
+            gameStart = False
 
-    """READY PHASE"""
-    # player_ready is True when at least one player is connected (initiated the map)
-    if are_players_ready is False:
+    '''READY PHASE'''
+    # gameOn is True when at least one player is connected (initiated the map)
+    if gameOn is False:
         print("Starting new game...\nGenerating new map...")
         board = Board(Util.TILEWIDTH, Util.TILEHEIGHT)
         board.initialize_board()
-        reset_timer()
-        # When the first player 'starts' the game, other players just need to join (map generates once)
-        are_players_ready = True
+        board.print_board()
+        gameOn = True  # When the first player 'starts' the game, other players just need to join (map generates once)
 
-    start_new_thread(threaded_client, (connection, address))
+
+    start_new_thread(threaded_client, (conn, addr))

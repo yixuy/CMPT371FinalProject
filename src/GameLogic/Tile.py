@@ -1,7 +1,5 @@
 from .Util import *
 import pygame as pg
-
-
 # Reference: https://www.youtube.com/watch?v=3UxnelT9aCo
 class Tile(pg.sprite.Sprite):
     def __init__(self, game, x, y, colour):
@@ -35,4 +33,4 @@ class Tile(pg.sprite.Sprite):
     def set_colour(self, colour_index):
         self.image.fill(COLOURS[colour_index])
         self.colour = colour_index
-        self.image.blit(self.game.screen, (0, 0))
+        self.image.blit(self.game.screen,(0,0))
