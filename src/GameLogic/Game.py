@@ -28,12 +28,9 @@ class Game:
         pg.time.set_timer(self.timer_event, self.time_delay)
         self.font = pygame.font.SysFont("Consolas", 37)
 
-    def set_player_num(self, player_num):
-        self.player_num = player_num
 
-    def game_screen(self):
+    def setup_grid(self):
         self.all_sprites = pg.sprite.Group()
-        # draw the wall
         for row in range(0, int(TILEWIDTH)):
             for col in range(0, int(TILEHEIGHT)):
                 tile = None
@@ -43,6 +40,10 @@ class Game:
                     tile = Tile(self, row, col, 0)
                 self.grid[row][col] = tile
 
+    def set_player_num(self, player_num):
+        self.player_num = player_num
+
+    def game_screen(self):
         if (self.player_num == 1):
             self.player = Player(self, 0, 0, self.player_num)
         if (self.player_num == 2):
@@ -91,6 +92,7 @@ class Game:
     def set_board(self, new_board_obj):
         self.board_obj = new_board_obj
         self.board = new_board_obj.get_board()
+        self.setup_grid()
 
     def update_board(self, updated_board_obj):
         self.board_obj = updated_board_obj

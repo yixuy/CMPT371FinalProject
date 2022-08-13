@@ -134,6 +134,7 @@ def threaded_client(p_conn, p_addr):
                             board.set_cell(15, 15, 4)
                         print("Server: Initiating GAME_START")
                         reply["code"] = GAME_START
+                        reply["data"] = board
                         print(reply)
                         broadcast(reply)
                         continue

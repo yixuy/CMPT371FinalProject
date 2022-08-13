@@ -58,6 +58,7 @@ def listen_for_messages(network, player_num):
                 print('THREAD [gameStartPrep]: msg from server: %s' % msg)
                 msg_code = msg["code"]
                 if msg_code is not None and msg_code == GAME_START:
+                    g.update_board(msg["data"])
                     did_server_start_game = True
                     # time.sleep(1)     # Seems to work now without this (Re-enable this if thread does not go to gameStart properly)
                 elif msg_code == GAME_NOT_ENOUGH_PLAYERS:
