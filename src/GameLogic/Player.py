@@ -1,5 +1,5 @@
 from time import sleep
-from .Util import TILESIZE, TILEWIDTH, COLOURS
+from .Util import TILESIZE, TILEWIDTH, COLOURS, TILEHEIGHT
 
 import pygame as pg
 # https://www.youtube.com/watch?v=3UxnelT9aCo
@@ -13,9 +13,16 @@ class Player(pg.sprite.Sprite):
         self.image = pg.Surface((TILESIZE-1, TILESIZE-1))
         self.x = x
         self.y = y
+        self.x_rect = 1
+        self.y_rect = 1
         self.image.fill(COLOURS[self.colour_index])
-        self.rect = pg.draw.rect(self.image, "black", [self.x,self.y,30,30],1)
-
+        if self.x == TILEWIDTH-1:
+            self.x_rect = self.x-15
+        if self.y == TILEHEIGHT-1:
+            self.y_rect = self.y-15
+        self.rect = pg.draw.rect(self.image, "black", [self.x_rect,self.y_rect,30,30],1)
+        print(self.x)
+        print(self.y)
 
     def move(self, dx=0, dy=0):
         if 0 <= self.x + dx < TILEWIDTH and 0 <= self.y + dy < TILEWIDTH:
