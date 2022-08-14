@@ -3,7 +3,7 @@
 
 This is the repo for CMPT371 Final Project
 
-**Team Member**
+**Team Members**
 
 - Denzel Tjokroardi
 - praneershrest
@@ -12,5 +12,5 @@ This is the repo for CMPT371 Final Project
 - yixuy
 
 
-Please use the Before run it
+Please run this command in Terminal before running the game
 - pip install pygame 
