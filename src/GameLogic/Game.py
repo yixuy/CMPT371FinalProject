@@ -1,6 +1,7 @@
-from NetworkUtils import GAME_PLAY
-import pygame as pg
 import sys
+
+from NetworkUtils import GAME_PLAY
+
 from .Player import *
 from .Tile import *
 

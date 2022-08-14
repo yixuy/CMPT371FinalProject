@@ -1,5 +1,4 @@
 import socket
-# import pickle
 import _pickle as pickle
 from NetworkUtils import IPADDRESS, PORTNUMBER
 

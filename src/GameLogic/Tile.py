@@ -11,11 +11,11 @@ class Tile(pg.sprite.Sprite):
         self.x = x
         self.y = y
         self.colour = colour
-        self.image = pg.Surface((TILESIZE-1, TILESIZE-1))
+        self.image = pg.Surface((TILESIZE - 1, TILESIZE - 1))
         self.image.fill(COLOURS[self.colour])
         self.rect = self.image.get_rect()
-        self.rect.x = (self.x * TILESIZE)+1
-        self.rect.y = (self.y * TILESIZE)+1
+        self.rect.x = (self.x * TILESIZE) + 1
+        self.rect.y = (self.y * TILESIZE) + 1
 
     def get_x(self):
         return self.x
@@ -34,5 +34,4 @@ class Tile(pg.sprite.Sprite):
 
     def set_colour(self, colour_index):
         self.image.fill(COLOURS[colour_index])
-<<<<<<< HEAD
         self.colour = colour_index

@@ -12,9 +12,9 @@ import time
 from GameLogic.Game import Game
 
 did_server_start_game = False
-gameStartPrep = False
-gameStart = False
-gameRdy = True
+is_game_starting = False
+is_game_ready = True
+is_game_running = False
 g = None
 
 pygame.font.init()
@@ -34,14 +34,14 @@ font = pygame.font.SysFont("comicsans", 37)
 
 # NOTE: I'm leaving the print statements here for now because this threading is not fully reliable yet!
 def listen_for_messages(network, player_num):
-    global did_server_start_game, gameStartPrep, gameStart, gameRdy, g
+    global did_server_start_game, is_game_starting, is_game_running, is_game_ready, g
     print("[Player %s] - Started listen_for_messages() Thread!" % player_num)
     clock = pygame.time.Clock()
     while True:
         clock.tick(60)
         # print("[THREAD]: gameRdy = %s, gameStartPrep = %s, gameStart = %s" % (gameRdy, gameStartPrep, gameStart))
         try:
-            if gameStart:
+            if is_game_running:
                 print("[THREAD]: In gameStart")
                 msg = network.recv()
 
@@ -50,7 +50,7 @@ def listen_for_messages(network, player_num):
                     if msg["data"] is not None:
                         g.update_board(msg["data"])
 
-            elif gameStartPrep:
+            elif is_game_starting:
                 print("[THREAD]: In gameStartPrep")
                 msg = network.recv()
                 if msg is None:
@@ -64,7 +64,7 @@ def listen_for_messages(network, player_num):
                 elif msg_code == GAME_NOT_ENOUGH_PLAYERS:
                     print("[gameStartPrep] - Game can't start because not enough players ready.")
 
-            elif gameRdy:
+            elif is_game_ready:
                 print("THREAD [gameRdy]: gameRdy")
                 msg = network.recv()
                 if msg["code"] is not None and msg["code"] == BOARD:
@@ -112,7 +112,7 @@ def game_start_count_down():
         pygame.display.flip()
 
 def main(network, p):
-    global gameStartPrep, did_server_start_game, gameStart, gameRdy, g
+    global is_game_starting, did_server_start_game, is_game_running, is_game_ready, g
     run = True
     clock = pygame.time.Clock()
     n = network
@@ -131,7 +131,7 @@ def main(network, p):
             '''READY PHASE (for client)
                 - Player stays in READY PHASE until Server says it GAMESTART'''
             # Get data from the server in 60fps (to update own board)
-            if gameRdy is True:
+            if is_game_ready is True:
                 # Get the board once from the server
                 if g is None:
                     g = Game()
@@ -141,8 +141,8 @@ def main(network, p):
 
                 # Generate the Game object with the game map
                 else:
-                    gameStartPrep = True
-                    gameRdy = False
+                    is_game_starting = True
+                    is_game_ready = False
 
                     win.fill((100, 100, 200))
                     text = font.render("Player is Ready!", True, (255, 0, 0))
@@ -152,10 +152,10 @@ def main(network, p):
                     pygame.display.flip()
 
 
-            if gameStartPrep is True:
+            if is_game_starting is True:
                 if did_server_start_game:
-                    gameStart = True
-                    gameStartPrep = False
+                    is_game_running = True
+                    is_game_starting = False
 
                 else:
                     for event in pygame.event.get():
@@ -170,8 +170,8 @@ def main(network, p):
 
             '''GAME PHASE (for client)'''
             # Actual Gameplay Logic
-            if gameStart is True:
-                print("Starting gameStart: " + str(gameStart))
+            if is_game_running is True:
+                print("Starting gameStart: " + str(is_game_running))
                 # ** Wait time till game starts for all players ( Uncomment when ready to use )
                 # game_start_count_down()
                 g.game_screen()
