@@ -1,15 +1,13 @@
 import errno
+import sys
 from threading import Thread
 
-from GameLogic.Util import WIDTH, HEIGHT, GAME_STARTING_TIME, COLOURS
-from GameLogic.Board import Board
 import pygame
-from Network import Network
-from NetworkUtils import *
-import sys
-import time
 
 from GameLogic.Game import Game
+from GameLogic.Util import WIDTH, HEIGHT, GAME_STARTING_TIME, COLOURS
+from Network import Network
+from NetworkUtils import *
 
 did_server_start_game = False
 is_game_starting = False

@@ -19,7 +19,7 @@ clients = [None] * len(free_clients_indices)
 
 timer = None
 is_timer_running = False
-remaining_game_time = REMAINING_TIME_MSG + str(TOTAL_GAME_TIME_IN_SECONDS) + "s"
+remaining_game_time = REMAINING_TIME_MSG + str(SERVER_GAME_TIME_IN_SECONDS) + "s"
 
 s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
@@ -31,7 +31,7 @@ except socket.error as e:
 
 # queue up as many as 4 connect requests (the normal max)
 # before refusing outside connections.
-s.listen(4)  # Queue up to max 4 requests (in case of burst connections)
+s.listen(MAX_PLAYERS)  # Queue up to max 4 requests (in case of burst connections)
 print("Waiting for a connection, Server Started")
 
 """
@@ -185,10 +185,6 @@ def threaded_client(p_conn, p_addr):
                     delete_client_from_list(p_conn)
                     break
 
-                elif data == GAME_OVER:
-                    reset_timer()
-                    # reply = score_data
-
                 p_conn.sendall(pickle.dumps(reply))
 
         except EOFError as err:
@@ -213,7 +209,7 @@ def start_timer():
     global is_timer_running, timer
     is_timer_running = True
     game_duration = datetime.datetime.strptime(time.strftime("%H:%M:%S"), "%H:%M:%S") + \
-                    datetime.timedelta(0, TOTAL_GAME_TIME_IN_SECONDS + 1)
+                    datetime.timedelta(0, SERVER_GAME_TIME_IN_SECONDS + 1)
 
     def display(msg):
         global remaining_game_time
@@ -233,9 +229,8 @@ def start_timer():
     timer.start()
     # Let the timer "run" for the duration of the game (plus an extra second
     # to ensure timer sync for all clients) until it reaches '0'
-    time.sleep(TOTAL_GAME_TIME_IN_SECONDS + 2)
+    time.sleep(SERVER_GAME_TIME_IN_SECONDS + 2)
     timer.cancel()
-
 
 
 while True:
