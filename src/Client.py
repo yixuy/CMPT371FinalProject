@@ -194,7 +194,7 @@ def main(network, p):
             if gameStart is True:
                 print("Starting gameStart: " + str(gameStart))
                 # ** Wait time till game starts for all players ( Uncomment when ready to use )
-                # game_start_count_down()
+                game_start_count_down()
                 g.game_screen()
 
                 while is_game_over == False:
