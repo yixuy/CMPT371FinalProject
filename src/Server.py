@@ -101,10 +101,10 @@ def threaded_client(p_conn, p_addr):
 
             if board.is_filled(): #or if server_timer == 0
                 scores = board.get_scores(player_count)
-                sorted_scores = {list(scores.keys())[i]: sorted(scores.values())[i] for i in range(len(list(scores.keys())))}
+                print("NUMBER OF WHITE TILES:", board.get_number_of_white_tiles())
                 reply["code"] = DISPLAY_SCORE
-                reply["data"] = sorted_scores
-                print("SORTED SCORES", sorted_scores, player_num)
+                reply["data"] = scores
+                print("SCORES", scores, player_num)
                 broadcast(reply)
                 break
 

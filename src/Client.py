@@ -208,9 +208,10 @@ def main(network, p):
                 while(scores is None):
                     continue
                 
-                display_score = "Game Over! "
+                colours_dict = {1: "Red", 2: "Blue", 3: "Green", 4: "Yellow"}
+                display_score = "Game Over!"
                 for player, score in scores.items():
-                    display_score += str(player) + ": " + str(score) + ", "
+                    display_score += colours_dict[player] + ": " + str(score) + ", "
 
                 win.fill((100, 100, 200))
                 text = font.render(display_score, True, (255, 0, 0))
