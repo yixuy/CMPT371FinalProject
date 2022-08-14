@@ -81,9 +81,9 @@ class Game:
         pg.display.flip()
 
     def update_timer(self):
-        clock_text = self.font.render(str(self.timer), True, (0, 0, 0))
+        clock_text = self.font.render(str(self.timer), True, (255, 255, 255))
         text_rect = clock_text.get_rect(center=self.bottom_screen_rect_obj.center)
-        self.bottom_screen_rect_obj = pg.draw.rect(self.screen, (0, 255, 0), (0, HEIGHT, WIDTH, 80))  # Redraws the rect (to clear out previous timer text)
+        self.bottom_screen_rect_obj = pg.draw.rect(self.screen, (100, 100, 100), (0, HEIGHT, WIDTH, 80))  # Redraws the rect (to clear out previous timer text)
         self.screen.blit(clock_text, text_rect)
 
     def update_tile(self, x, y, colour_index):
