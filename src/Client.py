@@ -1,5 +1,6 @@
 import errno
 import sys
+import time
 from threading import Thread
 
 import pygame
@@ -52,7 +53,7 @@ def listen_for_messages(network, player_num):
                         print("DISPLAY SCORE")
                         break
 
-            elif gameStart:
+            elif is_game_running:
                 print("[THREAD]: In gameStart")
                 msg = network.recv()
 
