@@ -103,6 +103,16 @@ def threaded_client(p_conn, p_addr):
 
         reply = {}
         try:
+
+            if board.is_filled(): #or if server_timer == 0
+                scores = board.get_scores(player_count)
+                print("NUMBER OF WHITE TILES:", board.get_number_of_white_tiles())
+                reply["code"] = DISPLAY_SCORE
+                reply["data"] = scores
+                print("SCORES", scores, player_num)
+                broadcast(reply)
+                break
+
             data = pickle.loads(p_conn.recv(2048))
 
             if len(data) <= 0:  # Watch out if this break statement causes any unintended problems
@@ -110,6 +120,7 @@ def threaded_client(p_conn, p_addr):
                 delete_client_from_list(p_conn)
                 break
             else:
+
                 data_code = data["code"]
 
                 # reset the game
@@ -137,6 +148,7 @@ def threaded_client(p_conn, p_addr):
                             board.set_cell(Util.TILEWIDTH-1, 0, 2)
                             board.set_cell(0, Util.TILEHEIGHT-1, 3)
                             board.set_cell(Util.TILEWIDTH-1, Util.TILEHEIGHT-1, 4)
+                        board.decrement_white_tiles_loop(player_count)
                         print("Server: Initiating GAME_START")
                         reply["code"] = GAME_START
                         reply["data"] = board
@@ -152,18 +164,28 @@ def threaded_client(p_conn, p_addr):
                     p_x = int(data["x"])
                     p_y = int(data["y"])
                     move = data["move"]
-                    if move == Util.LEFT and board.get_item(p_x - 1, p_y) == 0:
+                    if move == Util.LEFT and board.get_item(p_x-1, p_y) == 0:
                         board.set_cell(p_x - 1, p_y, p_col)
-                    elif move == Util.RIGHT and board.get_item(p_x + 1, p_y) == 0:
+                        board.decrement_white_tile()
+                    elif move == Util.RIGHT and board.get_item(p_x+1, p_y) == 0:
                         board.set_cell(p_x + 1, p_y, p_col)
-                    elif move == Util.UP and board.get_item(p_x, p_y - 1) == 0:
+                        board.decrement_white_tile()
+                    elif move == Util.UP and board.get_item(p_x, p_y-1) == 0:
                         board.set_cell(p_x, p_y - 1, p_col)
-                    elif move == Util.DOWN and board.get_item(p_x, p_y + 1) == 0:
+                        board.decrement_white_tile()
+                    elif move == Util.DOWN and board.get_item(p_x, p_y+1) == 0:
                         board.set_cell(p_x, p_y + 1, p_col)
-                    board.print_board()
-                    print()
-                    reply["code"] = BOARD
-                    reply["data"] = board
+                        board.decrement_white_tile()
+                    
+                    if board.is_filled():
+                        reply["code"] = GAME_OVER
+                        reply["data"] = board
+                    else:
+                        board.print_board()
+                        print()
+                        reply["code"] = BOARD
+                        reply["data"] = board
+
                     broadcast(reply)
                     continue
 
@@ -175,7 +197,7 @@ def threaded_client(p_conn, p_addr):
                         break
 
                     reply["code"] = PLAYER_CAN_JOIN
-                    reply = player_num
+                    reply["data"] = player_num
                     print("player number: ", player_num)
                     if player_num is None:
                         reply["code"] = GAME_FULL
@@ -190,7 +212,6 @@ def threaded_client(p_conn, p_addr):
                 p_conn.sendall(pickle.dumps(reply))
 
         except EOFError as err:
-            print("hitting EOF Error!", err)
             delete_client_from_list(p_conn)
             break
 

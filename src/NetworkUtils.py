@@ -13,12 +13,13 @@ BOARD = 'Board'
 PLAYER_CAN_JOIN = 'PlayerCanJoin'
 GAME_ERROR = 'GameError'
 GAME_NOT_ENOUGH_PLAYERS = 'GameNotEnoughPlayers'
+GAME_OVER = 'GameOver'
+DISPLAY_SCORE = 'DisplayScore'
 
 TESTING_PURPOSES = 'TestingPurposes'
 REMAINING_GAMETIME = "RemainingGameTime"
 
 IPADDRESS = 'localhost'
-# IPADDRESS = '207.23.160.2'
 PORTNUMBER = 50000
 
 CLIENT_GAME_TIME_IN_SECONDS = 30
