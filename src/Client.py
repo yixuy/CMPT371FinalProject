@@ -57,7 +57,7 @@ def listen_for_messages(network, player_num):
                 msg = network.recv()
 
                 print("THREAD [gameStart]: gameStart, msg from server: %s" % msg)
-                
+
                 if msg is not None:
                     if msg["code"] == GAME_OVER and msg["data"] is not None:
                         print(msg["data"].print_board())
@@ -67,7 +67,7 @@ def listen_for_messages(network, player_num):
 
                     elif msg["code"] == BOARD and msg["data"] is not None:
                         g.update_board(msg["data"])
-                    
+
 
             elif is_game_starting:
                 print("[THREAD]: In gameStartPrep")
@@ -114,6 +114,7 @@ def close_game(network):
     pygame.quit()
     sys.exit()
 
+
 def game_start_count_down():
     count_down = GAME_STARTING_TIME
     time_delay = 1000
@@ -130,6 +131,7 @@ def game_start_count_down():
         win.blit(text2, text2.get_rect(center=(WIDTH / 2, (HEIGHT / 2) + 40)))
         pygame.display.flip()
 
+
 def main(network, p):
     global is_game_starting, did_server_start_game, is_game_running, is_game_ready, g, is_game_over, scores, game_end
     run = True
@@ -137,7 +139,6 @@ def main(network, p):
     n = network
     player_num = p
     print("You are Player", player_num)
-
 
     t = Thread(target=listen_for_messages, args=(n, player_num))
     t.daemon = True
@@ -170,7 +171,6 @@ def main(network, p):
                     win.blit(text2, (15, 230))
                     pygame.display.flip()
 
-
             if is_game_starting is True:
                 if did_server_start_game:
                     is_game_running = True
@@ -199,14 +199,14 @@ def main(network, p):
                     g.input_dir(network, player_num)
                     g.update()
                     g.draw()
-                
+
                 is_game_running = False
                 game_end = True
                 n.send_only("Game is over")
 
-                while(scores is None):
+                while (scores is None):
                     continue
-                
+
                 colours_dict = {1: "Red", 2: "Blue", 3: "Green", 4: "Yellow"}
                 display_score = "Game Over!"
                 for player, score in scores.items():

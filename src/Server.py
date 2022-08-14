@@ -63,7 +63,7 @@ def add_client_to_list(p_conn, p_addr):
         free_clients_indices.sort()  # so the smallest player number is preferred
         to_use_i = free_clients_indices.pop(0)
         clients[to_use_i] = [p_conn, p_addr[0], p_addr[1]]
-        player_num = to_use_i + 1  # bcs indices start from 0
+        player_num = to_use_i + 1  # b/c indices start from 0
         return player_num
     return None
 
@@ -104,7 +104,7 @@ def threaded_client(p_conn, p_addr):
         reply = {}
         try:
 
-            if board.is_filled(): #or if server_timer == 0
+            if board.is_filled():  # or if server_timer == 0
                 scores = board.get_scores(player_count)
                 print("NUMBER OF WHITE TILES:", board.get_number_of_white_tiles())
                 reply["code"] = DISPLAY_SCORE
@@ -140,14 +140,14 @@ def threaded_client(p_conn, p_addr):
                         board.set_cell(0, 0, 1)
                         if player_count == 2:
                             print("CELL IS SET HERE")
-                            board.set_cell(Util.TILEWIDTH-1, 0, 2)
+                            board.set_cell(Util.TILEWIDTH - 1, 0, 2)
                         if player_count == 3:
-                            board.set_cell(Util.TILEWIDTH-1, 0, 2)
-                            board.set_cell(0, Util.TILEHEIGHT-1, 3)
+                            board.set_cell(Util.TILEWIDTH - 1, 0, 2)
+                            board.set_cell(0, Util.TILEHEIGHT - 1, 3)
                         if player_count == 4:
-                            board.set_cell(Util.TILEWIDTH-1, 0, 2)
-                            board.set_cell(0, Util.TILEHEIGHT-1, 3)
-                            board.set_cell(Util.TILEWIDTH-1, Util.TILEHEIGHT-1, 4)
+                            board.set_cell(Util.TILEWIDTH - 1, 0, 2)
+                            board.set_cell(0, Util.TILEHEIGHT - 1, 3)
+                            board.set_cell(Util.TILEWIDTH - 1, Util.TILEHEIGHT - 1, 4)
                         board.decrement_white_tiles_loop(player_count)
                         print("Server: Initiating GAME_START")
                         reply["code"] = GAME_START
@@ -164,19 +164,19 @@ def threaded_client(p_conn, p_addr):
                     p_x = int(data["x"])
                     p_y = int(data["y"])
                     move = data["move"]
-                    if move == Util.LEFT and board.get_item(p_x-1, p_y) == 0:
+                    if move == Util.LEFT and board.get_item(p_x - 1, p_y) == 0:
                         board.set_cell(p_x - 1, p_y, p_col)
                         board.decrement_white_tile()
-                    elif move == Util.RIGHT and board.get_item(p_x+1, p_y) == 0:
+                    elif move == Util.RIGHT and board.get_item(p_x + 1, p_y) == 0:
                         board.set_cell(p_x + 1, p_y, p_col)
                         board.decrement_white_tile()
-                    elif move == Util.UP and board.get_item(p_x, p_y-1) == 0:
+                    elif move == Util.UP and board.get_item(p_x, p_y - 1) == 0:
                         board.set_cell(p_x, p_y - 1, p_col)
                         board.decrement_white_tile()
-                    elif move == Util.DOWN and board.get_item(p_x, p_y+1) == 0:
+                    elif move == Util.DOWN and board.get_item(p_x, p_y + 1) == 0:
                         board.set_cell(p_x, p_y + 1, p_col)
                         board.decrement_white_tile()
-                    
+
                     if board.is_filled():
                         reply["code"] = GAME_OVER
                         reply["data"] = board

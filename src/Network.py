@@ -21,7 +21,6 @@ class Network:
 
     def send_only(self, data):
         try:
-            # self.client.sendall(data)
             self.client.sendall(pickle.dumps(data))
             return
         except socket.error as e:
@@ -30,7 +29,6 @@ class Network:
     # When sending to Server, it will also hear back from the server
     def send(self, data):
         try:
-            # self.client.sendall(data)
             self.client.sendall(pickle.dumps(data))
             return pickle.loads(self.client.recv(2048 * 2))
         except socket.error as e:

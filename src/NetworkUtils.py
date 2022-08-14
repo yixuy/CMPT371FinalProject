@@ -17,7 +17,6 @@ GAME_OVER = 'GameOver'
 DISPLAY_SCORE = 'DisplayScore'
 
 TESTING_PURPOSES = 'TestingPurposes'
-REMAINING_GAMETIME = "RemainingGameTime"
 
 IPADDRESS = 'localhost'
 PORTNUMBER = 50000
