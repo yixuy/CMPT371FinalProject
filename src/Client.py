@@ -53,7 +53,7 @@ def listen_for_messages(network, player_num):
                         print("DISPLAY SCORE")
                         break
 
-            if gameStart:
+            elif gameStart:
                 print("[THREAD]: In gameStart")
                 msg = network.recv()
 
@@ -61,9 +61,10 @@ def listen_for_messages(network, player_num):
                 
                 if msg is not None:
                     if msg["code"] == GAME_OVER and msg["data"] is not None:
+                        print("CLIENT GAMEOVER")
                         print(msg["data"].print_board())
                         g.update_board(msg["data"])
-                        print("CLIENT GAMEOVER")
+                        time.sleep(1)
                         is_game_over = True
 
                     elif msg["code"] == BOARD and msg["data"] is not None:
@@ -193,7 +194,7 @@ def main(network, p):
             if gameStart is True:
                 print("Starting gameStart: " + str(gameStart))
                 # ** Wait time till game starts for all players ( Uncomment when ready to use )
-                # game_start_count_down()
+                game_start_count_down()
                 g.game_screen()
 
                 while is_game_over == False:
