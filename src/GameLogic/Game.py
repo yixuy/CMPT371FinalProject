@@ -5,6 +5,7 @@ import sys
 from .Player import *
 from .Board import *
 from .Tile import *
+from .Util import *
 # Reference: https://www.youtube.com/watch?v=3UxnelT9aCo
 
 class Game:
@@ -47,11 +48,11 @@ class Game:
         if (self.player_num == 1):
             self.player = Player(self, 0, 0, self.player_num)
         if (self.player_num == 2):
-            self.player = Player(self, 15, 0, self.player_num)
+            self.player = Player(self, TILEWIDTH-1, 0, self.player_num)
         if (self.player_num == 3):
-            self.player = Player(self, 0, 15, self.player_num)
+            self.player = Player(self, 0, TILEHEIGHT-1, self.player_num)
         if (self.player_num == 4):
-            self.player = Player(self, 15, 15, self.player_num)
+            self.player = Player(self, TILEWIDTH-1, TILEHEIGHT-1, self.player_num)
 
     def start_game(self):
         while True:
