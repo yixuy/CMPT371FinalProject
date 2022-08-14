@@ -72,7 +72,7 @@ def delete_client_from_list(p_conn):
     # clients format: [ [conn, ip, port], [conn, ip, port], etc ], etc ]
     global player_count
     try:
-        for x in range(0, len(clients)):
+        for x in range(len(clients)):
             print("clients x: ", x)
             if clients[x] is None:
                 continue
@@ -83,6 +83,9 @@ def delete_client_from_list(p_conn):
                 p_conn.close()
                 print("Client deleted successfully! free_clients_indices added back to list: ", x)
                 break
+
+        if all(client is None for client in clients):
+            reset_timer()
     except:
         pass
 
@@ -103,8 +106,7 @@ def threaded_client(p_conn, p_addr):
 
         reply = {}
         try:
-
-            if board.is_filled():  # or if server_timer == 0
+            if (is_timer_running and remaining_game_time == REMAINING_TIME_MSG + "0s") or board.is_filled():
                 scores = board.get_scores(player_count)
                 print("NUMBER OF WHITE TILES:", board.get_number_of_white_tiles())
                 reply["code"] = DISPLAY_SCORE
@@ -157,6 +159,10 @@ def threaded_client(p_conn, p_addr):
                         continue
                     else:
                         reply["code"] = GAME_NOT_ENOUGH_PLAYERS
+
+                elif data_code == START_SERVER_TIMER:
+                    start_timer()
+                    print("server timer has started")
 
                 # When player makes a move, server updates the board, and sends back the new board
                 elif data_code == GAME_PLAY:
@@ -231,37 +237,40 @@ def reset_timer():
 
 def start_timer():
     global is_timer_running, timer
-    is_timer_running = True
-    game_duration = datetime.datetime.strptime(time.strftime("%H:%M:%S"), "%H:%M:%S") + \
-                    datetime.timedelta(0, SERVER_GAME_TIME_IN_SECONDS + 1)
+    if is_timer_running is False:
+        is_timer_running = True
+        game_duration = datetime.datetime.strptime(time.strftime("%H:%M:%S"), "%H:%M:%S") + \
+                        datetime.timedelta(0, SERVER_GAME_TIME_IN_SECONDS + 1)
 
-    def display(msg):
-        global remaining_game_time
-        remaining_seconds = int(
-            (game_duration - datetime.datetime.strptime(time.strftime("%H:%M:%S"), "%H:%M:%S")).total_seconds())
-        message = msg + str(remaining_seconds) + "s"
-        print(message)
-        remaining_game_time = message
-        # broadcast(score)
+        def display(msg):
+            global remaining_game_time
+            remaining_seconds = int(
+                (game_duration - datetime.datetime.strptime(time.strftime("%H:%M:%S"), "%H:%M:%S")).total_seconds())
+            message = msg + str(remaining_seconds) + "s"
+            print(message)
+            remaining_game_time = message
 
-    class RepeatTimer(Timer):
-        def run(self):
-            while not self.finished.wait(self.interval):
-                self.function(*self.args, **self.kwargs)
+        class RepeatTimer(Timer):
+            def run(self):
+                while not self.finished.wait(self.interval):
+                    self.function(*self.args, **self.kwargs)
 
-    timer = RepeatTimer(1, display, [REMAINING_TIME_MSG])
-    timer.start()
-    # Let the timer "run" for the duration of the game (plus an extra second
-    # to ensure timer sync for all clients) until it reaches '0'
-    time.sleep(SERVER_GAME_TIME_IN_SECONDS + 2)
-    timer.cancel()
+        timer = RepeatTimer(1, display, [REMAINING_TIME_MSG])
+        timer.start()
+        # Let the timer "run" for the duration of the game (plus an extra second
+        # to ensure timer sync for all clients) until it reaches '0'
+        time.sleep(SERVER_GAME_TIME_IN_SECONDS + 2)
+        timer.cancel()
+    else:
+        print("Server timer is running already!")
 
 
 while True:
     connection, address = s.accept()
-    avail_spots = len(free_clients_indices)
+    avail_spots = len(free_clients_indices)  # is this used anywhere?
 
     '''START PHASE'''
+    ############### Are these 3 lines currently doing anything?
     # Server begins to start the game
     if is_game_running is True:
         if avail_spots < 2:

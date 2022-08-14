@@ -15,6 +15,7 @@ GAME_ERROR = 'GameError'
 GAME_NOT_ENOUGH_PLAYERS = 'GameNotEnoughPlayers'
 GAME_OVER = 'GameOver'
 DISPLAY_SCORE = 'DisplayScore'
+START_SERVER_TIMER = 'StartServerTimer'
 
 TESTING_PURPOSES = 'TestingPurposes'
 

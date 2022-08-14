@@ -117,7 +117,7 @@ def close_game(network):
     sys.exit()
 
 
-def game_start_count_down():
+def game_start_count_down(network):
     count_down = GAME_STARTING_TIME
     time_delay = 1000
     timer_event = pygame.USEREVENT + 1
@@ -132,6 +132,9 @@ def game_start_count_down():
         win.blit(text, text.get_rect(center=(WIDTH / 2, (HEIGHT / 2) - 10)))
         win.blit(text2, text2.get_rect(center=(WIDTH / 2, (HEIGHT / 2) + 40)))
         pygame.display.flip()
+    else:
+        reply = {"code": START_SERVER_TIMER}
+        network.send_only(reply)
 
 
 def main(network, p):
@@ -194,10 +197,10 @@ def main(network, p):
             if is_game_running is True:
                 print("Starting gameStart: " + str(is_game_running))
                 # ** Wait time till game starts for all players ( Uncomment when ready to use )
-                game_start_count_down()
+                game_start_count_down(n)
                 g.game_screen()
 
-                while is_game_over == False:
+                while not is_game_over:
                     g.input_dir(network, player_num)
                     g.update()
                     g.draw()
@@ -206,7 +209,7 @@ def main(network, p):
                 game_end = True
                 n.send_only("Game is over")
 
-                while (scores is None):
+                while scores is None:
                     continue
 
                 colours_dict = {1: "Red", 2: "Blue", 3: "Green", 4: "Yellow"}
