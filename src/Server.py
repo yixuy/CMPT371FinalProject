@@ -128,7 +128,7 @@ def threaded_client(p_conn, p_addr):
                     if player_count >= 2:
                         board.set_cell(0, 0, 1)
                         if player_count == 2:
-                            print("CELL IS SET HEREE")
+                            print("CELL IS SET HERE")
                             board.set_cell(Util.TILEWIDTH-1, 0, 2)
                         if player_count == 3:
                             board.set_cell(Util.TILEWIDTH-1, 0, 2)
@@ -173,6 +173,8 @@ def threaded_client(p_conn, p_addr):
                     if player_num == -1:
                         print("player could not join.")
                         break
+
+                    reply["code"] = PLAYER_CAN_JOIN
                     reply = player_num
                     print("player number: ", player_num)
                     if player_num is None:
@@ -188,6 +190,7 @@ def threaded_client(p_conn, p_addr):
                 p_conn.sendall(pickle.dumps(reply))
 
         except EOFError as err:
+            print("hitting EOF Error!", err)
             delete_client_from_list(p_conn)
             break
 
