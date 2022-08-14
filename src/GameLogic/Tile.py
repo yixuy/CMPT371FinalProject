@@ -34,5 +34,5 @@ class Tile(pg.sprite.Sprite):
 
     def set_colour(self, colour_index):
         self.image.fill(COLOURS[colour_index])
+<<<<<<< HEAD
         self.colour = colour_index
-        self.image.blit(self.game.screen, (0, 0))

@@ -1,26 +1,35 @@
-import sys
-
 from NetworkUtils import GAME_PLAY
-
+import pygame as pg
+import sys
 from .Player import *
 from .Tile import *
 
 
 # Reference: https://www.youtube.com/watch?v=3UxnelT9aCo
-class Game:
+class Game():
     def __init__(self, board_obj):
         pg.init()
-        self.screen = pg.display.set_mode((WIDTH, HEIGHT))
+        self.screen = pg.display.set_mode((WIDTH, HEIGHT + 80))
+        self.bottom_screen_rect_obj = pg.draw.rect(self.screen, (0, 200, 0), (0, HEIGHT, WIDTH, 80))  # Only for timer UI rn
         pg.display.set_caption(TITLE)
         self.clock = pg.time.Clock()
-        self.board = board_obj.get_board()
-        self.board_obj = board_obj
+        self.board = None
+        self.board_obj = None
         self.grid = [[0 for i in range(TILEWIDTH)] for j in range(TILEHEIGHT)]
+        self.player = None
+        self.player_num = 0
         pg.key.set_repeat(500, 100)
 
-    def game_screen(self):
+        # Might be temporary - allows each client to run their own timer (for clock UI testing purposes)
+        self.time_delay = 1000
+        self.timer = 150
+        self.timer_event = pygame.USEREVENT + 1
+        pg.time.set_timer(self.timer_event, self.time_delay)
+        self.font = pygame.font.SysFont("Consolas", 37)
+
+
+    def setup_grid(self):
         self.all_sprites = pg.sprite.Group()
-        # draw the wall
         for row in range(0, int(TILEWIDTH)):
             for col in range(0, int(TILEHEIGHT)):
                 tile = None
@@ -30,7 +39,19 @@ class Game:
                     tile = Tile(self, row, col, 0)
                 self.grid[row][col] = tile
 
-        self.player = Player(self, 0, 0, 1)
+    def set_player_num(self, player_num):
+        self.player_num = player_num
+
+    def game_screen(self):
+        if (self.player_num == 1):
+            self.player = Player(self, 0, 0, self.player_num)
+        if (self.player_num == 2):
+            self.player = Player(self, 15, 0, self.player_num)
+        if (self.player_num == 3):
+            self.player = Player(self, 0, 15, self.player_num)
+        if (self.player_num == 4):
+            self.player = Player(self, 15, 15, self.player_num)
+
     def start_game(self):
         while True:
             self.dt = self.clock.tick(FPS) / 10
@@ -52,46 +73,90 @@ class Game:
             pg.draw.line(self.screen, LIGHTGREY, (0, y), (WIDTH, y))
 
     def draw(self):
+        self.update_timer()
         self.draw_grid()
         self.all_sprites.draw(self.screen)
         pg.display.flip()
 
+    def update_timer(self):
+        clock_text = self.font.render(str(self.timer), True, (0, 0, 0))
+        text_rect = clock_text.get_rect(center=self.bottom_screen_rect_obj.center)
+        self.bottom_screen_rect_obj = pg.draw.rect(self.screen, (0, 255, 0), (0, HEIGHT, WIDTH, 80))  # Redraws the rect (to clear out previous timer text)
+        self.screen.blit(clock_text, text_rect)
 
     def update_tile(self, x, y, colour_index):
         tile = self.grid[x][y]
         tile.set_colour(colour_index)
 
+    def set_board(self, new_board_obj):
+        self.board_obj = new_board_obj
+        self.board = new_board_obj.get_board()
+        self.setup_grid()
+
+    def update_board(self, updated_board_obj):
+        self.board_obj = updated_board_obj
+        self.board = updated_board_obj.get_board()
+        for row in range(TILEHEIGHT):
+            for col in range(TILEHEIGHT):
+                self.update_tile(row, col, self.board[row][col])
+        # self.update_tile(10, 10, self.board[10][10])
+
+    def get_board(self):
+        return self.board
 
     def input_dir(self, network, player):
-        msg = GAME_PLAY + ";" + str(player) + ";"
+
+        msg = {
+                "code": GAME_PLAY,
+                "player": str(player),
+                "x": self.player.get_x(),
+                "y": self.player.get_y()
+               }
         for event in pg.event.get():
+            if event.type == self.timer_event:
+                self.timer -= 1
+
             if event.type == pg.QUIT:
+                network.send_only({"code": PLAYER_DISCONNECT})
                 self.quit()
             if event.type == pg.KEYDOWN:
                 curr_x = self.player.get_x()
                 curr_y = self.player.get_y()
                 colour_index = self.player.get_colour_index()
+
                 if event.key == pg.K_ESCAPE:
+                    network.send_only({"code": PLAYER_DISCONNECT})
                     self.quit()
                 elif event.key == pg.K_LEFT:
-                    if curr_x + 1 < TILEWIDTH and self.board[curr_x-1][curr_y] != -1:
-                        msg = msg + LEFT
-                        network.send(msg)
+                    if curr_x >= 1 and self.board[curr_x - 1][curr_y] != -1:
+                        self.player.move(dx=-1)
+                        msg["move"] = LEFT
+                        network.send_only(msg)
                         return
                 elif event.key == pg.K_RIGHT:
                     if curr_x + 1 < TILEWIDTH and self.board[curr_x + 1][curr_y] != -1:
-                        msg = msg + RIGHT
-                        network.send(msg)
+                        self.player.move(dx=1)
+                        msg["move"] = RIGHT
+                        network.send_only(msg)
                         return
+                    # if curr_x + 1 < TILEWIDTH and self.board[curr_x + 1][curr_y] == 0:
+                    #     self.player.move(dx=1)
+                    #     self.board_obj.change_tile(curr_x,curr_y,colour_index)
+                    #     self.update_tile(curr_x, curr_y, colour_index)
 
                 elif event.key == pg.K_UP:
                     if curr_y >= 1 and self.board[curr_x][curr_y - 1] != -1:
                         msg = msg + UP
                         network.send(msg)
                         return
+                    # if curr_y >= 1 and self.board[curr_x][curr_y - 1] == 0:
+                    #     self.player.move(dy=-1)
+                    #     self.board_obj.change_tile(curr_x,curr_y,colour_index)
+                    #     self.update_tile(curr_x, curr_y, colour_index)
                 elif event.key == pg.K_DOWN:
                     if curr_y + 1 < TILEHEIGHT and self.board[curr_x][curr_y + 1] != -1:
-                        msg = msg + DOWN
-                        network.send(msg)
+                        self.player.move(dy=1)
+                        msg["move"] = DOWN
+                        network.send_only(msg)
                         return
 

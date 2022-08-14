@@ -27,3 +27,5 @@ UP = "UP"
 RIGHT = "RIGHT"
 LEFT = "LEFT"
 DOWN = "DOWN"
+
+GAME_STARTING_TIME = 5     # 5 seconds
