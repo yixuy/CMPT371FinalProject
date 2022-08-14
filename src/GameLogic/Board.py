@@ -64,7 +64,7 @@ class Board:
     def get_item(self, x, y):
         return self.board[x][y]
 
-    def set_cell_colour_number(self,x,y,num):
+    def set_cell_colour_number(self, x, y, num):
         self.board[x][y] = num
 
     def initialize_board(self):
@@ -90,10 +90,10 @@ class Board:
         print('\n'.join(' '.join('{0: ^3}'.format(str(i)) for i in row) for row in transpose_board))
 
     # Called by Server
-    def change_tile(self,x, y, colour_index):
-        target = self.get_item(x,y)
-        if(target == 0):
-            self.set_cell_colour_number(x,y,colour_index)
+    def change_tile(self, x, y, colour_index):
+        target = self.get_item(x, y)
+        if (target == 0):
+            self.set_cell_colour_number(x, y, colour_index)
 
     def print_this_board(board):
         transpose_board = [[row[i] for row in board] for i in range(len(board[0]))]
