@@ -12,10 +12,13 @@ BOARD = 'Board'
 PLAYER_CAN_JOIN = 'PlayerCanJoin'
 GAME_ERROR = 'GameError'
 GAME_NOT_ENOUGH_PLAYERS = 'GameNotEnoughPlayers'
+GAME_OVER = 'GameOver'
+DISPLAY_SCORE = 'DisplayScore'
 
 TESTING_PURPOSES = 'TestingPurposes'
 
 IPADDRESS = 'localhost'
 # IPADDRESS = '207.23.160.2'
+# IPADDRESS = '207.23.189.22'
 PORTNUMBER = 50000
 

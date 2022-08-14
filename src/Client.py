@@ -15,6 +15,9 @@ did_server_start_game = False
 gameStartPrep = False
 gameStart = False
 gameRdy = True
+is_game_over = False
+scores = None
+game_end = False
 g = None
 
 pygame.font.init()
@@ -34,21 +37,38 @@ font = pygame.font.SysFont("comicsans", 37)
 
 # NOTE: I'm leaving the print statements here for now because this threading is not fully reliable yet!
 def listen_for_messages(network, player_num):
-    global did_server_start_game, gameStartPrep, gameStart, gameRdy, g
+    global did_server_start_game, gameStartPrep, gameStart, gameRdy, g, is_game_over, scores, game_end
     print("[Player %s] - Started listen_for_messages() Thread!" % player_num)
     clock = pygame.time.Clock()
     while True:
         clock.tick(60)
         # print("[THREAD]: gameRdy = %s, gameStartPrep = %s, gameStart = %s" % (gameRdy, gameStartPrep, gameStart))
         try:
+            if game_end:
+                msg = network.recv()
+                print("IN GAME END", msg)
+                if msg["code"] is not None:
+                    if msg["code"] == DISPLAY_SCORE and msg["data"] is not None:
+                        scores = msg["data"]
+                        print("DISPLAY SCORE")
+                        break
+
             if gameStart:
                 print("[THREAD]: In gameStart")
                 msg = network.recv()
 
                 print("THREAD [gameStart]: gameStart, msg from server: %s" % msg)
-                if msg is not None and msg["code"] == BOARD:
-                    if msg["data"] is not None:
+                
+                if msg is not None:
+                    if msg["code"] == GAME_OVER and msg["data"] is not None:
+                        print(msg["data"].print_board())
                         g.update_board(msg["data"])
+                        print("CLIENT GAMEOVER")
+                        is_game_over = True
+
+                    elif msg["code"] == BOARD and msg["data"] is not None:
+                        g.update_board(msg["data"])
+                    
 
             elif gameStartPrep:
                 print("[THREAD]: In gameStartPrep")
@@ -112,7 +132,7 @@ def game_start_count_down():
         pygame.display.flip()
 
 def main(network, p):
-    global gameStartPrep, did_server_start_game, gameStart, gameRdy, g
+    global gameStartPrep, did_server_start_game, gameStart, gameRdy, g, is_game_over, scores, game_end
     run = True
     clock = pygame.time.Clock()
     n = network
@@ -176,10 +196,31 @@ def main(network, p):
                 # game_start_count_down()
                 g.game_screen()
 
-                while True:
+                while is_game_over == False:
                     g.input_dir(network, player_num)
                     g.update()
                     g.draw()
+                
+                gameStart = False
+                game_end = True
+                n.send_only("Game is over")
+
+                while(scores is None):
+                    continue
+                
+                display_score = "Game Over! "
+                for player, score in scores.items():
+                    display_score += str(player) + ": " + str(score) + ", "
+
+                win.fill((100, 100, 200))
+                text = font.render(display_score, True, (255, 0, 0))
+                win.blit(text, (15, 150))
+                pygame.display.flip()
+
+            for event in pygame.event.get():
+                if event.type == pygame.KEYDOWN:
+                    if event.key == pygame.K_SPACE:
+                        close_game(n)
 
         except KeyboardInterrupt:
             print("Keyboard interrupt: Closing game...")

@@ -152,4 +152,3 @@ class Game:
                         msg["move"] = DOWN
                         network.send_only(msg)
                         return
-

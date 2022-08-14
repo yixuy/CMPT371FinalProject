@@ -98,6 +98,16 @@ def threaded_client(p_conn, p_addr):
 
         reply = {}
         try:
+
+            if board.is_filled(): #or if server_timer == 0
+                scores = board.get_scores(player_count)
+                sorted_scores = {list(scores.keys())[i]: sorted(scores.values())[i] for i in range(len(list(scores.keys())))}
+                reply["code"] = DISPLAY_SCORE
+                reply["data"] = sorted_scores
+                print("SORTED SCORES", sorted_scores, player_num)
+                broadcast(reply)
+                break
+
             data = pickle.loads(p_conn.recv(2048))
 
             if len(data) <= 0:      # Watch out if this break statement causes any unintended problems
@@ -105,6 +115,7 @@ def threaded_client(p_conn, p_addr):
                 delete_client_from_list(p_conn, p_addr)
                 break
             else:
+
                 data_code = data["code"]
 
                 # reset the game
@@ -132,6 +143,7 @@ def threaded_client(p_conn, p_addr):
                             board.set_cell(Util.TILEWIDTH-1, 0, 2)
                             board.set_cell(0, Util.TILEHEIGHT-1, 3)
                             board.set_cell(Util.TILEWIDTH-1, Util.TILEHEIGHT-1, 4)
+                        board.decrement_white_tiles_loop(player_count)
                         print("Server: Initiating GAME_START")
                         reply["code"] = GAME_START
                         reply["data"] = board
@@ -149,16 +161,26 @@ def threaded_client(p_conn, p_addr):
                     move = data["move"]
                     if move == Util.LEFT and board.get_item(p_x-1, p_y) == 0:
                         board.set_cell(p_x-1, p_y, p_col)
+                        board.decrement_white_tile()
                     elif move == Util.RIGHT and board.get_item(p_x+1, p_y) == 0:
                         board.set_cell(p_x+1, p_y, p_col)
+                        board.decrement_white_tile()
                     elif move == Util.UP and board.get_item(p_x, p_y-1) == 0:
                         board.set_cell(p_x, p_y-1, p_col)
+                        board.decrement_white_tile()
                     elif move == Util.DOWN and board.get_item(p_x, p_y+1) == 0:
                         board.set_cell(p_x, p_y+1, p_col)
-                    board.print_board()
-                    print()
-                    reply["code"] = BOARD
-                    reply["data"] = board
+                        board.decrement_white_tile()
+
+                    if board.is_filled():
+                        reply["code"] = GAME_OVER
+                        reply["data"] = board
+                    else:
+                        board.print_board()
+                        print()
+                        reply["code"] = BOARD
+                        reply["data"] = board
+                    
                     broadcast(reply)
                     continue
 
