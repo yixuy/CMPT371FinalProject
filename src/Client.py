@@ -165,9 +165,9 @@ def main(network, p):
                     gameStartPrep = True
                     gameRdy = False
 
-                    win.fill((100, 100, 200))
-                    text = font.render("Player is Ready!", True, (255, 0, 0))
-                    text2 = font.render("Press Space to start game!", True, (255, 0, 0))
+                    win.fill((100, 100, 100))
+                    text = font.render("Player is Ready!", True, (255, 255, 255))
+                    text2 = font.render("Press Space to start game!", True, (255, 255, 255))
                     win.blit(text, (15, 150))
                     win.blit(text2, (15, 230))
                     pygame.display.flip()
@@ -210,13 +210,16 @@ def main(network, p):
                     continue
                 
                 colours_dict = {1: "Red", 2: "Blue", 3: "Green", 4: "Yellow"}
-                display_score = "Game Over!"
-                for player, score in scores.items():
-                    display_score += colours_dict[player] + ": " + str(score) + ", "
-
-                win.fill((100, 100, 200))
-                text = font.render(display_score, True, (255, 0, 0))
+                game_over_text = "Game Over!"
+                win.fill((100, 100, 100))
+                text = font.render(game_over_text, True, (255,255,255))
                 win.blit(text, (15, 150))
+                pixel_height = 200
+                for player, score in scores.items():
+                    display_score = colours_dict[player] + ": " + str(score)
+                    score_text = font.render(display_score, True, COLOURS[player])
+                    win.blit(score_text, (15, pixel_height))
+                    pixel_height += 50
                 pygame.display.flip()
 
             for event in pygame.event.get():
@@ -244,7 +247,7 @@ def menu_screen():
 
     win.fill((128, 128, 128))
     font = pygame.font.SysFont("comicsans", 50)
-    text = font.render("Press Space to Play!", True, (255, 0, 0))
+    text = font.render("Press Space to Play!", True, (255,255,255))
     win.blit(text, (20, 200))
     pygame.display.flip()
 
