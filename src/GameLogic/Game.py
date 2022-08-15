@@ -1,5 +1,5 @@
 import pygame
-from NetworkUtils import GAME_PLAY, PLAYER_DISCONNECT
+from NetworkUtils import CLIENT_GAME_TIME_IN_SECONDS, GAME_PLAY, PLAYER_DISCONNECT
 import pygame as pg
 import sys
 from .Player import *
@@ -24,7 +24,7 @@ class Game:
 
         # Might be temporary - allows each client to run their own timer (for clock UI testing purposes)
         self.time_delay = 1000
-        self.timer = 150
+        self.timer = CLIENT_GAME_TIME_IN_SECONDS
         self.timer_event = pygame.USEREVENT + 1
         pg.time.set_timer(self.timer_event, self.time_delay)
         self.font = pygame.font.SysFont("Consolas", 37)
@@ -116,7 +116,10 @@ class Game:
                }
         for event in pg.event.get():
             if event.type == self.timer_event:
-                self.timer -= 1
+                if self.timer == 0:
+                    network.send_only({"code": "Game is Over!"})
+                else:
+                    self.timer -= 1
 
             if event.type == pg.QUIT:
                 network.send_only({"code": PLAYER_DISCONNECT})
