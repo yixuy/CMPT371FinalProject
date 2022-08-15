@@ -10,9 +10,9 @@ from GameLogic.Game import Game
 
 # Global flags to control the state of the game
 did_server_start_game = False
-gameStartPrep = False
-gameStart = False
-gameRdy = True
+game_start_prep = False
+game_start = False
+game_rdy = True
 is_game_over = False
 scores = None
 game_end = False
@@ -33,7 +33,7 @@ Client's Game Implementation:
 
 # Thread for client to listen to Server requests continuously
 def listen_for_messages(network, player_num):
-    global did_server_start_game, gameStartPrep, gameStart, gameRdy, g, is_game_over, scores, game_end
+    global did_server_start_game, game_start_prep, game_start, game_rdy, g, is_game_over, scores, game_end
     print("[Player %s] - Started listen_for_messages() Thread!" % player_num)
     clock = pygame.time.Clock()
     while True:
@@ -54,7 +54,7 @@ def listen_for_messages(network, player_num):
 
             # State: Game Start
             # Client will receive data during game play
-            elif gameStart:
+            elif game_start:
                 msg = network.recv()
                 if msg is not None and len(msg) > 0:
 
@@ -69,7 +69,7 @@ def listen_for_messages(network, player_num):
                     
             # State: Game Start Prep
             # Client will receive signal to start the game
-            elif gameStartPrep:
+            elif game_start_prep:
                 msg = network.recv()
                 if msg is None:
                     continue
@@ -86,7 +86,7 @@ def listen_for_messages(network, player_num):
 
             # State: Game Ready
             # Client has joined game successfully and will receive the game board
-            elif gameRdy:
+            elif game_rdy:
                 msg = network.recv()
                 if msg["code"] is not None and msg["code"] == BOARD:
                     g.set_board(msg["data"])
@@ -132,7 +132,7 @@ def game_start_count_down():
 
 # Main is where the game for client runs
 def main(network, p):
-    global gameStartPrep, did_server_start_game, gameStart, gameRdy, g, is_game_over, scores, game_end
+    global game_start_prep, did_server_start_game, game_start, game_rdy, g, is_game_over, scores, game_end
     run = True
     clock = pygame.time.Clock()
     n = network
@@ -150,9 +150,9 @@ def main(network, p):
         clock.tick(60)  # Runs the game in 60fps
         try:
             '''READY PHASE (for client)
-                - Player stays in READY PHASE until Server signals GAMESTART'''
+                - Player stays in READY PHASE until Server signals game_start'''
             # Get data from the server in 60fps (to update own board)
-            if gameRdy is True:
+            if game_rdy is True:
                 # Get the board initially from the server
                 if g is None:
                     g = Game()
@@ -163,8 +163,8 @@ def main(network, p):
                 # Generate the Game object with the game map
                 else:
                     # Move to the next game state: Game Start Prep
-                    gameStartPrep = True
-                    gameRdy = False
+                    game_start_prep = True
+                    game_rdy = False
 
                     # UI changes when Player has joined Game
                     win.fill((100, 100, 100))
@@ -175,11 +175,11 @@ def main(network, p):
                     pygame.display.flip()
 
 
-            if gameStartPrep is True:
+            if game_start_prep is True:
                 if did_server_start_game:
                     # Move to next game state: Game Start
-                    gameStartPrep = False
-                    gameStart = True
+                    game_start_prep = False
+                    game_start = True
 
                 else:
                     for event in pygame.event.get():
@@ -195,7 +195,7 @@ def main(network, p):
 
             '''GAME PHASE (for client)'''
             # Actual Gameplay Logic
-            if gameStart is True:
+            if game_start is True:
                 game_start_count_down()
                 g.game_screen()
 
@@ -209,7 +209,7 @@ def main(network, p):
                     g.draw()
                 
                 # Move to next game state: Game End
-                gameStart = False
+                game_start = False
                 game_end = True
 
                 # This is a redundant request sent to Server in case Server is blocked in a receiving call
