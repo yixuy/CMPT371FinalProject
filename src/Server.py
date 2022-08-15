@@ -144,6 +144,8 @@ def threaded_client(p_conn, p_addr):
                         board.decrement_white_tiles_loop(player_count)
                         reply["code"] = GAME_START
                         reply["data"] = board
+
+                        # If first player: Start the server time
                         if game_end_time is None:
                             game_end_time = (datetime.datetime.now() + datetime.timedelta(
                                 seconds=SERVER_GAME_TIME_IN_SECONDS)).replace(microsecond=0)
@@ -212,7 +214,6 @@ def threaded_client(p_conn, p_addr):
             print('Server - Reading error: {}'.format(str(err)))
             continue
 
-    # p_conn.close()
     print("[Player %s] - conn.close()" % player_num)
 
 
