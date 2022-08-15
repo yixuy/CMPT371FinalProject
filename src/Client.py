@@ -1,11 +1,13 @@
 import errno
+import sys
 from threading import Thread
-from GameLogic.Util import WIDTH, HEIGHT, GAME_STARTING_TIME, COLOURS
+
 import pygame
+
+from GameLogic.Game import Game
+from GameLogic.Util import WIDTH, HEIGHT, GAME_STARTING_TIME, COLOURS
 from Network import Network
 from NetworkUtils import *
-import sys
-from GameLogic.Game import Game
 
 # Global flags to control the state of the game
 did_server_start_game = False
@@ -204,7 +206,7 @@ def main(network, p):
                 # Get player direction and send to Server to handle board updates
                 # Client receives the updated board from the Server
                 # Client will update their board and handle UI changes
-                while is_game_over == False:
+                while is_game_over is False:
                     g.input_dir(network, player_num)
                     g.update()
                     g.draw()

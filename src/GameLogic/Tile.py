@@ -1,5 +1,8 @@
-from .Util import *
 import pygame as pg
+
+from .Util import *
+
+
 # Adapted from: https://www.youtube.com/watch?v=3UxnelT9aCo
 class Tile(pg.sprite.Sprite):
     def __init__(self, game, x, y, colour):
