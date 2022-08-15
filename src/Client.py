@@ -230,15 +230,15 @@ def main(network, p):
                 game_over_text = "Game Over!"
                 win.fill((100, 100, 100))
                 text = font.render(game_over_text, True, (255, 255, 255))
-                win.blit(text, (15, 150))
-                pixel_height = 200
+                win.blit(text, (15, 50))
+                pixel_height = 100
                 for player, score in scores.items():
                     display_score = colours_dict[player] + ": " + str(score)
                     score_text = font.render(display_score, True, COLOURS[player])
                     win.blit(score_text, (15, pixel_height))
                     pixel_height += 50
                 exit_text = font.render("Press Space to exit", True, (255, 255, 255))
-                win.blit(exit_text, (15, pixel_height + 30))
+                win.blit(exit_text, (15, pixel_height + 150))
                 text1 = font.render("Your colour is: " + colours_dict[player_num], True, COLOURS[player_num])
                 win.blit(text1, (15, pixel_height+50))
                 pygame.display.flip()
