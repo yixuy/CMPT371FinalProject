@@ -26,19 +26,19 @@ class Network:
         except socket.error as e:
             print("Error [Network.py]: ", e)
 
-    # When sending to Server, it will also hear back from the server
+    # Sending data (request) to server, and hear (return) the server response
     def send(self, data):
         try:
+            # self.client.sendall(data)
             self.client.sendall(pickle.dumps(data))
             return pickle.loads(self.client.recv(2048 * 2))
         except socket.error as e:
-            print("Error [Network.py]:", e)
+            print("Error [Network.py]: ", e)
 
     def recv(self):
         try:
             return pickle.loads(self.client.recv(2048 * 2))
         except:
-            # pass # Do nothing
             return None
 
     def disconnect(self):
