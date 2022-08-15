@@ -172,10 +172,13 @@ def main(network, p):
 
                     # UI changes when Player has joined Game
                     win.fill((100, 100, 100))
+                    colours_dict = {1: "Red", 2: "Blue", 3: "Green", 4: "Yellow"}
                     text = font.render("Player is Ready!", True, (255, 255, 255))
                     text2 = font.render("Press Space to start game!", True, (255, 255, 255))
+                    text3 = font.render("Your colour is: " + colours_dict[player_num], True, COLOURS[player_num])
                     win.blit(text, (15, 150))
                     win.blit(text2, (15, 230))
+                    win.blit(text3, (15,280))
                     pygame.display.flip()
 
             if game_start_prep is True:
@@ -234,6 +237,8 @@ def main(network, p):
                     score_text = font.render(display_score, True, COLOURS[player])
                     win.blit(score_text, (15, pixel_height))
                     pixel_height += 50
+                text1 = font.render("Your colour is: " + colours_dict[player_num], True, COLOURS[player_num])
+                win.blit(text1, (15, pixel_height+50))
                 pygame.display.flip()
 
             for event in pygame.event.get():
