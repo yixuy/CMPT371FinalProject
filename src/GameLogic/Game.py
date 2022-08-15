@@ -1,6 +1,5 @@
 import sys
 
-import pygame
 from NetworkUtils import CLIENT_GAME_TIME_IN_SECONDS, GAME_PLAY, PLAYER_DISCONNECT
 
 from .Player import *
@@ -26,9 +25,9 @@ class Game:
         # Might be temporary - allows each client to run their own timer (for clock UI testing purposes)
         self.time_delay = 1000
         self.timer = CLIENT_GAME_TIME_IN_SECONDS
-        self.timer_event = pygame.USEREVENT + 1
+        self.timer_event = pg.USEREVENT + 1
         pg.time.set_timer(self.timer_event, self.time_delay)
-        self.font = pygame.font.SysFont("Consolas", 37)
+        self.font = pg.font.SysFont("Consolas", 37)
 
     def setup_grid(self):
         self.all_sprites = pg.sprite.Group()
