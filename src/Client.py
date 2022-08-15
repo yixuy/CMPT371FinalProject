@@ -234,6 +234,8 @@ def main(network, p):
                     score_text = font.render(display_score, True, COLOURS[player])
                     win.blit(score_text, (15, pixel_height))
                     pixel_height += 50
+                exit_text = font.render("Press Space to exit", True, (255, 255, 255))
+                win.blit(exit_text, (15, pixel_height + 30))
                 pygame.display.flip()
 
             for event in pygame.event.get():
