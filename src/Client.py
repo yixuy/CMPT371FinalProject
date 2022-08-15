@@ -42,12 +42,11 @@ def listen_for_messages(network, player_num):
     clock = pygame.time.Clock()
     while True:
         clock.tick(60)
-        # print("[THREAD]: gameRdy = %s, gameStartPrep = %s, gameStart = %s" % (gameRdy, gameStartPrep, gameStart))
         try:
             if game_end:
                 msg = network.recv()
                 print("IN GAME END", msg)
-                if msg["code"] is not None:
+                if len(msg) > 0 and msg["code"] is not None:
                     if msg["code"] == DISPLAY_SCORE and msg["data"] is not None:
                         scores = msg["data"]
                         print("DISPLAY SCORE")
@@ -59,12 +58,11 @@ def listen_for_messages(network, player_num):
 
                 print("THREAD [gameStart]: gameStart, msg from server: %s" % msg)
                 
-                if msg is not None:
+                if msg is not None and len(msg) > 0:
                     if msg["code"] == GAME_OVER and msg["data"] is not None:
                         print("CLIENT GAMEOVER")
                         print(msg["data"].print_board())
                         g.update_board(msg["data"])
-                        time.sleep(1)
                         is_game_over = True
 
                     elif msg["code"] == BOARD and msg["data"] is not None:
@@ -81,7 +79,6 @@ def listen_for_messages(network, player_num):
                 if msg_code is not None and msg_code == GAME_START:
                     g.update_board(msg["data"])
                     did_server_start_game = True
-                    # time.sleep(1)     # Seems to work now without this (Re-enable this if thread does not go to gameStart properly)
                 elif msg_code == GAME_NOT_ENOUGH_PLAYERS:
                     print("[gameStartPrep] - Game can't start because not enough players ready.")
 
@@ -175,8 +172,8 @@ def main(network, p):
 
             if gameStartPrep is True:
                 if did_server_start_game:
-                    gameStart = True
                     gameStartPrep = False
+                    gameStart = True
 
                 else:
                     for event in pygame.event.get():
@@ -193,7 +190,6 @@ def main(network, p):
             # Actual Gameplay Logic
             if gameStart is True:
                 print("Starting gameStart: " + str(gameStart))
-                # ** Wait time till game starts for all players ( Uncomment when ready to use )
                 game_start_count_down()
                 g.game_screen()
 
