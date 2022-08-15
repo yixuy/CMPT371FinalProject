@@ -1,21 +1,21 @@
 import errno
-import sys
-import time
 from threading import Thread
 
-import pygame
-
-from GameLogic.Game import Game
 from GameLogic.Util import WIDTH, HEIGHT, GAME_STARTING_TIME, COLOURS
+from GameLogic.Board import Board
+import pygame
 from Network import Network
 from NetworkUtils import *
+import sys
+import time
+
+from GameLogic.Game import Game
 
 did_server_start_game = False
-is_game_ready = True
-is_game_starting = False
-is_game_running = False
+gameStartPrep = False
+gameStart = False
+gameRdy = True
 is_game_over = False
-
 scores = None
 game_end = False
 g = None
@@ -37,41 +37,39 @@ font = pygame.font.SysFont("comicsans", 37)
 
 # NOTE: I'm leaving the print statements here for now because this threading is not fully reliable yet!
 def listen_for_messages(network, player_num):
-    global did_server_start_game, is_game_starting, is_game_running, is_game_ready, g, is_game_over, scores, game_end
+    global did_server_start_game, gameStartPrep, gameStart, gameRdy, g, is_game_over, scores, game_end
     print("[Player %s] - Started listen_for_messages() Thread!" % player_num)
     clock = pygame.time.Clock()
     while True:
         clock.tick(60)
-        # print("[THREAD]: gameRdy = %s, gameStartPrep = %s, gameStart = %s" % (gameRdy, gameStartPrep, gameStart))
         try:
             if game_end:
                 msg = network.recv()
                 print("IN GAME END", msg)
-                if msg["code"] is not None:
+                if len(msg) > 0 and msg["code"] is not None:
                     if msg["code"] == DISPLAY_SCORE and msg["data"] is not None:
                         scores = msg["data"]
                         print("DISPLAY SCORE")
                         break
 
-            elif is_game_running:
+            elif gameStart:
                 print("[THREAD]: In gameStart")
                 msg = network.recv()
 
                 print("THREAD [gameStart]: gameStart, msg from server: %s" % msg)
-
-                if msg is not None:
+                
+                if msg is not None and len(msg) > 0:
                     if msg["code"] == GAME_OVER and msg["data"] is not None:
                         print("CLIENT GAMEOVER")
                         print(msg["data"].print_board())
                         g.update_board(msg["data"])
-                        time.sleep(1)
                         is_game_over = True
 
                     elif msg["code"] == BOARD and msg["data"] is not None:
                         g.update_board(msg["data"])
+                    
 
-
-            elif is_game_starting:
+            elif gameStartPrep:
                 print("[THREAD]: In gameStartPrep")
                 msg = network.recv()
                 if msg is None:
@@ -81,11 +79,10 @@ def listen_for_messages(network, player_num):
                 if msg_code is not None and msg_code == GAME_START:
                     g.update_board(msg["data"])
                     did_server_start_game = True
-                    # time.sleep(1)     # Seems to work now without this (Re-enable this if thread does not go to gameStart properly)
                 elif msg_code == GAME_NOT_ENOUGH_PLAYERS:
                     print("[gameStartPrep] - Game can't start because not enough players ready.")
 
-            elif is_game_ready:
+            elif gameRdy:
                 print("THREAD [gameRdy]: gameRdy")
                 msg = network.recv()
                 if msg["code"] is not None and msg["code"] == BOARD:
@@ -116,8 +113,7 @@ def close_game(network):
     pygame.quit()
     sys.exit()
 
-
-def game_start_count_down(network):
+def game_start_count_down():
     count_down = GAME_STARTING_TIME
     time_delay = 1000
     timer_event = pygame.USEREVENT + 1
@@ -132,18 +128,15 @@ def game_start_count_down(network):
         win.blit(text, text.get_rect(center=(WIDTH / 2, (HEIGHT / 2) - 10)))
         win.blit(text2, text2.get_rect(center=(WIDTH / 2, (HEIGHT / 2) + 40)))
         pygame.display.flip()
-    else:
-        reply = {"code": START_SERVER_TIMER}
-        network.send_only(reply)
-
 
 def main(network, p):
-    global is_game_starting, did_server_start_game, is_game_running, is_game_ready, g, is_game_over, scores, game_end
+    global gameStartPrep, did_server_start_game, gameStart, gameRdy, g, is_game_over, scores, game_end
     run = True
     clock = pygame.time.Clock()
     n = network
     player_num = p
     print("You are Player", player_num)
+
 
     t = Thread(target=listen_for_messages, args=(n, player_num))
     t.daemon = True
@@ -156,7 +149,7 @@ def main(network, p):
             '''READY PHASE (for client)
                 - Player stays in READY PHASE until Server says it GAMESTART'''
             # Get data from the server in 60fps (to update own board)
-            if is_game_ready is True:
+            if gameRdy is True:
                 # Get the board once from the server
                 if g is None:
                     g = Game()
@@ -166,20 +159,21 @@ def main(network, p):
 
                 # Generate the Game object with the game map
                 else:
-                    is_game_starting = True
-                    is_game_ready = False
+                    gameStartPrep = True
+                    gameRdy = False
 
-                    win.fill((100, 100, 200))
-                    text = font.render("Player is Ready!", True, (255, 0, 0))
-                    text2 = font.render("Press Space to start game!", True, (255, 0, 0))
+                    win.fill((100, 100, 100))
+                    text = font.render("Player is Ready!", True, (255, 255, 255))
+                    text2 = font.render("Press Space to start game!", True, (255, 255, 255))
                     win.blit(text, (15, 150))
                     win.blit(text2, (15, 230))
                     pygame.display.flip()
 
-            if is_game_starting is True:
+
+            if gameStartPrep is True:
                 if did_server_start_game:
-                    is_game_running = True
-                    is_game_starting = False
+                    gameStartPrep = False
+                    gameStart = True
 
                 else:
                     for event in pygame.event.get():
@@ -194,32 +188,34 @@ def main(network, p):
 
             '''GAME PHASE (for client)'''
             # Actual Gameplay Logic
-            if is_game_running is True:
-                print("Starting gameStart: " + str(is_game_running))
-                # ** Wait time till game starts for all players ( Uncomment when ready to use )
-                game_start_count_down(n)
+            if gameStart is True:
+                print("Starting gameStart: " + str(gameStart))
+                game_start_count_down()
                 g.game_screen()
 
-                while not is_game_over:
+                while is_game_over == False:
                     g.input_dir(network, player_num)
                     g.update()
                     g.draw()
-
-                is_game_running = False
+                
+                gameStart = False
                 game_end = True
                 n.send_only("Game is over")
 
-                while scores is None:
+                while(scores is None):
                     continue
-
+                
                 colours_dict = {1: "Red", 2: "Blue", 3: "Green", 4: "Yellow"}
-                display_score = "Game Over!"
-                for player, score in scores.items():
-                    display_score += colours_dict[player] + ": " + str(score) + ", "
-
-                win.fill((100, 100, 200))
-                text = font.render(display_score, True, (255, 0, 0))
+                game_over_text = "Game Over!"
+                win.fill((100, 100, 100))
+                text = font.render(game_over_text, True, (255,255,255))
                 win.blit(text, (15, 150))
+                pixel_height = 200
+                for player, score in scores.items():
+                    display_score = colours_dict[player] + ": " + str(score)
+                    score_text = font.render(display_score, True, COLOURS[player])
+                    win.blit(score_text, (15, pixel_height))
+                    pixel_height += 50
                 pygame.display.flip()
 
             for event in pygame.event.get():
@@ -247,7 +243,7 @@ def menu_screen():
 
     win.fill((128, 128, 128))
     font = pygame.font.SysFont("comicsans", 50)
-    text = font.render("Press Space to Play!", True, (255, 0, 0))
+    text = font.render("Press Space to Play!", True, (255,255,255))
     win.blit(text, (20, 200))
     pygame.display.flip()
 
