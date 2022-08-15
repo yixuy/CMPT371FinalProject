@@ -1,12 +1,14 @@
+import sys
+
 import pygame
 from NetworkUtils import CLIENT_GAME_TIME_IN_SECONDS, GAME_PLAY, PLAYER_DISCONNECT
-import pygame as pg
-import sys
+
 from .Player import *
 from .Tile import *
 from .Util import *
-# Adapted from: https://www.youtube.com/watch?v=3UxnelT9aCo
 
+
+# Adapted from: https://www.youtube.com/watch?v=3UxnelT9aCo
 class Game:
     def __init__(self):
         pg.init()
@@ -28,13 +30,12 @@ class Game:
         pg.time.set_timer(self.timer_event, self.time_delay)
         self.font = pygame.font.SysFont("Consolas", 37)
 
-
     def setup_grid(self):
         self.all_sprites = pg.sprite.Group()
         for row in range(0, int(TILEWIDTH)):
             for col in range(0, int(TILEHEIGHT)):
                 tile = None
-                if (self.board[row][col] == -1):
+                if self.board[row][col] == -1:
                     tile = Tile(self, row, col, -1)
                 else:
                     tile = Tile(self, row, col, 0)
@@ -44,14 +45,14 @@ class Game:
         self.player_num = player_num
 
     def game_screen(self):
-        if (self.player_num == 1):
+        if self.player_num == 1:
             self.player = Player(self, 0, 0, self.player_num)
-        if (self.player_num == 2):
-            self.player = Player(self, TILEWIDTH-1, 0, self.player_num)
-        if (self.player_num == 3):
-            self.player = Player(self, 0, TILEHEIGHT-1, self.player_num)
-        if (self.player_num == 4):
-            self.player = Player(self, TILEWIDTH-1, TILEHEIGHT-1, self.player_num)
+        if self.player_num == 2:
+            self.player = Player(self, TILEWIDTH - 1, 0, self.player_num)
+        if self.player_num == 3:
+            self.player = Player(self, 0, TILEHEIGHT - 1, self.player_num)
+        if self.player_num == 4:
+            self.player = Player(self, TILEWIDTH - 1, TILEHEIGHT - 1, self.player_num)
 
     def start_game(self):
         while True:
@@ -106,11 +107,11 @@ class Game:
 
     def input_dir(self, network, player):
         msg = {
-                "code": GAME_PLAY,
-                "player": str(player),
-                "x": self.player.get_x(),
-                "y": self.player.get_y()
-               }
+            "code": GAME_PLAY,
+            "player": str(player),
+            "x": self.player.get_x(),
+            "y": self.player.get_y()
+        }
         for event in pg.event.get():
             if event.type == self.timer_event:
                 if self.timer == 0:

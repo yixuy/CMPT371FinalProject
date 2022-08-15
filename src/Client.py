@@ -1,12 +1,13 @@
 import errno
+import sys
 from threading import Thread
-from GameLogic.Util import WIDTH, HEIGHT, GAME_STARTING_TIME, COLOURS
+
 import pygame
+
+from GameLogic.Game import Game
+from GameLogic.Util import WIDTH, HEIGHT, GAME_STARTING_TIME, COLOURS
 from Network import Network
 from NetworkUtils import *
-import sys
-from GameLogic.Game import Game
-
 
 # Global flags to control the state of the game
 did_server_start_game = False
@@ -30,6 +31,7 @@ Client's Game Implementation:
     - Server will process that coords and send client back the 'updated' tiles if it passed the tile checking
     - If client passed the tile checking, client will update its own board (by setting the tile colour)
 '''
+
 
 # Thread for client to listen to Server requests continuously
 def listen_for_messages(network, player_num):
@@ -114,6 +116,7 @@ def close_game(network):
     pygame.quit()
     sys.exit()
 
+
 def game_start_count_down():
     count_down = GAME_STARTING_TIME
     time_delay = 1000
@@ -129,6 +132,7 @@ def game_start_count_down():
         win.blit(text, text.get_rect(center=(WIDTH / 2, (HEIGHT / 2) - 10)))
         win.blit(text2, text2.get_rect(center=(WIDTH / 2, (HEIGHT / 2) + 40)))
         pygame.display.flip()
+
 
 # Main is where the game for client runs
 def main(network, p):
@@ -203,7 +207,7 @@ def main(network, p):
                     # Get player direction and send to Server to handle board updates
                     # Client receives the updated board from the Server
                     # Client will update their board and handle UI changes
-                while is_game_over == False:
+                while is_game_over is False:
                     g.input_dir(network, player_num)
                     g.update()
                     g.draw()
@@ -216,7 +220,7 @@ def main(network, p):
                 n.send_only("Game is over")
 
                 # Wait until final scores from the Server have been received
-                while(scores is None):
+                while scores is None:
                     continue
                 
                 # UI setup to display final scores
@@ -301,6 +305,7 @@ def menu_screen():
 
     # Game is run for specific client with their assigned player number
     main(n, n.get_player_num())
+
 
 while True:
     menu_screen()
