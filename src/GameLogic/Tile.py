@@ -1,6 +1,6 @@
 from .Util import *
 import pygame as pg
-# Reference: https://www.youtube.com/watch?v=3UxnelT9aCo
+# Adapted from: https://www.youtube.com/watch?v=3UxnelT9aCo
 class Tile(pg.sprite.Sprite):
     def __init__(self, game, x, y, colour):
         self.groups = game.all_sprites
@@ -18,17 +18,8 @@ class Tile(pg.sprite.Sprite):
     def get_x(self):
         return self.x
 
-    def set_x(self, x):
-        self.x = x
-
     def get_y(self):
         return self.y
-
-    def set_y(self, y):
-        self.y = y
-
-    def get_colour(self):
-        return self.colour
 
     def set_colour(self, colour_index):
         self.image.fill(COLOURS[colour_index])
