@@ -1,93 +1,95 @@
 import errno
 from threading import Thread
-
 from GameLogic.Util import WIDTH, HEIGHT, GAME_STARTING_TIME, COLOURS
-from GameLogic.Board import Board
 import pygame
 from Network import Network
 from NetworkUtils import *
 import sys
-import time
-
 from GameLogic.Game import Game
 
+
+# Global flags to control the state of the game
 did_server_start_game = False
-gameStartPrep = False
-gameStart = False
-gameRdy = True
+game_start_prep = False
+game_start = False
+game_rdy = True
 is_game_over = False
 scores = None
 game_end = False
 g = None
 
 pygame.font.init()
-
 win = pygame.display.set_mode((WIDTH, HEIGHT))
 pygame.display.set_caption("Client")
 font = pygame.font.SysFont("comicsans", 37)
 
-'''Client's Game Implementation:
-        - Onces client ready, waits for Server to signal that game is starting
-        - Every 30fps, client will send Server its current coords
-        - Server will process that coords and send client back the 'updated' tiles if
-            it passed the tile checking
-        - If client passed the tile checking, client will update its own board (by setting the tile colour)
-        '''
+'''
+Client's Game Implementation:
+    - Once client is ready, wait for Server to signal that game is starting
+    - Every 60fps, client will send Server its current coords and colour
+    - Server will process that coords and send client back the 'updated' tiles if it passed the tile checking
+    - If client passed the tile checking, client will update its own board (by setting the tile colour)
+'''
 
-
-# NOTE: I'm leaving the print statements here for now because this threading is not fully reliable yet!
+# Thread for client to listen to Server requests continuously
 def listen_for_messages(network, player_num):
-    global did_server_start_game, gameStartPrep, gameStart, gameRdy, g, is_game_over, scores, game_end
+    global did_server_start_game, game_start_prep, game_start, game_rdy, g, is_game_over, scores, game_end
     print("[Player %s] - Started listen_for_messages() Thread!" % player_num)
     clock = pygame.time.Clock()
     while True:
+        # This runs the game at 60fps
         clock.tick(60)
+
+        # Depending on the state of the game, client will receive different messages from Server
         try:
+
+            # State: Game End
+            # Client will receive the final scores from the Server
             if game_end:
                 msg = network.recv()
-                print("IN GAME END", msg)
                 if len(msg) > 0 and msg["code"] is not None:
                     if msg["code"] == DISPLAY_SCORE and msg["data"] is not None:
                         scores = msg["data"]
-                        print("DISPLAY SCORE")
                         break
 
-            elif gameStart:
-                print("[THREAD]: In gameStart")
+            # State: Game Start
+            # Client will receive data during game play
+            elif game_start:
                 msg = network.recv()
-
-                print("THREAD [gameStart]: gameStart, msg from server: %s" % msg)
-                
                 if msg is not None and len(msg) > 0:
+
+                    # If the game has ended, Client updates the board one final time and changes their game state to game_end
                     if msg["code"] == GAME_OVER and msg["data"] is not None:
-                        print("CLIENT GAMEOVER")
-                        print(msg["data"].print_board())
                         g.update_board(msg["data"])
                         is_game_over = True
 
+                    # If the game has not ended, Client will receive updated boards from the Server
                     elif msg["code"] == BOARD and msg["data"] is not None:
                         g.update_board(msg["data"])
                     
-
-            elif gameStartPrep:
-                print("[THREAD]: In gameStartPrep")
+            # State: Game Start Prep
+            # Client will receive signal to start the game
+            elif game_start_prep:
                 msg = network.recv()
                 if msg is None:
                     continue
-                print('THREAD [gameStartPrep]: msg from server: %s' % msg)
                 msg_code = msg["code"]
+
+                # Client receives the signal from Server to start the game
                 if msg_code is not None and msg_code == GAME_START:
                     g.update_board(msg["data"])
                     did_server_start_game = True
+                
+                # Client is not allowed to start game because at least 2 players are not ready
                 elif msg_code == GAME_NOT_ENOUGH_PLAYERS:
-                    print("[gameStartPrep] - Game can't start because not enough players ready.")
+                    print("Game can't start because not enough players ready.")
 
-            elif gameRdy:
-                print("THREAD [gameRdy]: gameRdy")
+            # State: Game Ready
+            # Client has joined game successfully and will receive the game board
+            elif game_rdy:
                 msg = network.recv()
                 if msg["code"] is not None and msg["code"] == BOARD:
                     g.set_board(msg["data"])
-                    print("THREAD: BOARD: ", g.get_board())
 
         except IOError as e:
             if e.errno != errno.EAGAIN and e.errno != errno.EWOULDBLOCK:
@@ -106,7 +108,6 @@ def listen_for_messages(network, player_num):
 
 
 def close_game(network):
-    print("Closing game...")
     reply = {"code": PLAYER_DISCONNECT}
     network.send_only(reply)
     network.disconnect()
@@ -129,15 +130,17 @@ def game_start_count_down():
         win.blit(text2, text2.get_rect(center=(WIDTH / 2, (HEIGHT / 2) + 40)))
         pygame.display.flip()
 
+# Main is where the game for client runs
 def main(network, p):
-    global gameStartPrep, did_server_start_game, gameStart, gameRdy, g, is_game_over, scores, game_end
+    global game_start_prep, did_server_start_game, game_start, game_rdy, g, is_game_over, scores, game_end
     run = True
     clock = pygame.time.Clock()
     n = network
     player_num = p
-    print("You are Player", player_num)
 
-
+    # Create thread for Client to continuously listen to requests from the Server
+    # This is to create a full duplex connection so that the Server and the Client can send and receive continuously (i.e. non-blocking)
+    # Setting a "full duplex" connection aims to make sure Clients move game states concurrently
     t = Thread(target=listen_for_messages, args=(n, player_num))
     t.daemon = True
     t.start()
@@ -147,10 +150,10 @@ def main(network, p):
         clock.tick(60)  # Runs the game in 60fps
         try:
             '''READY PHASE (for client)
-                - Player stays in READY PHASE until Server says it GAMESTART'''
+                - Player stays in READY PHASE until Server signals game_start'''
             # Get data from the server in 60fps (to update own board)
-            if gameRdy is True:
-                # Get the board once from the server
+            if game_rdy is True:
+                # Get the board initially from the server
                 if g is None:
                     g = Game()
                     g.set_player_num(player_num)
@@ -159,9 +162,11 @@ def main(network, p):
 
                 # Generate the Game object with the game map
                 else:
-                    gameStartPrep = True
-                    gameRdy = False
+                    # Move to the next game state: Game Start Prep
+                    game_start_prep = True
+                    game_rdy = False
 
+                    # UI changes when Player has joined Game
                     win.fill((100, 100, 100))
                     text = font.render("Player is Ready!", True, (255, 255, 255))
                     text2 = font.render("Press Space to start game!", True, (255, 255, 255))
@@ -170,15 +175,17 @@ def main(network, p):
                     pygame.display.flip()
 
 
-            if gameStartPrep is True:
+            if game_start_prep is True:
                 if did_server_start_game:
-                    gameStartPrep = False
-                    gameStart = True
+                    # Move to next game state: Game Start
+                    game_start_prep = False
+                    game_start = True
 
                 else:
                     for event in pygame.event.get():
                         if event.type == pygame.KEYDOWN:
                             if event.key == pygame.K_SPACE:
+                                # Client lets Server know they are ready to start game
                                 reply["code"] = GAME_PREPSTART
                                 n.send_only(reply)
                             if event.type == pygame.K_ESCAPE:
@@ -188,23 +195,31 @@ def main(network, p):
 
             '''GAME PHASE (for client)'''
             # Actual Gameplay Logic
-            if gameStart is True:
-                print("Starting gameStart: " + str(gameStart))
+            if game_start is True:
                 game_start_count_down()
                 g.game_screen()
 
+                # While game is not over:
+                    # Get player direction and send to Server to handle board updates
+                    # Client receives the updated board from the Server
+                    # Client will update their board and handle UI changes
                 while is_game_over == False:
                     g.input_dir(network, player_num)
                     g.update()
                     g.draw()
                 
-                gameStart = False
+                # Move to next game state: Game End
+                game_start = False
                 game_end = True
+
+                # This is a redundant request sent to Server in case Server is blocked in a receiving call
                 n.send_only("Game is over")
 
+                # Wait until final scores from the Server have been received
                 while(scores is None):
                     continue
                 
+                # UI setup to display final scores
                 colours_dict = {1: "Red", 2: "Blue", 3: "Green", 4: "Yellow"}
                 game_over_text = "Game Over!"
                 win.fill((100, 100, 100))
@@ -232,15 +247,18 @@ def main(network, p):
 
         except Exception as e:
             print('Reading error [MAIN]: {}'.format(str(e)))
-            print("Still continuing game loop as per normal.")
             continue
 
 
 def menu_screen():
     run = True
     clock = pygame.time.Clock()
+
+    # Opens Client socket
+    # Network class handles all socket programming from the Client
     n = Network()
 
+    # Menu screen UI
     win.fill((128, 128, 128))
     font = pygame.font.SysFont("comicsans", 50)
     text = font.render("Press Space to Play!", True, (255,255,255))
@@ -254,29 +272,35 @@ def menu_screen():
         for event in pygame.event.get():
             if event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_SPACE:
-                    print("button pressed - ready")
                     run = False
+
+                    # Client socket connects with Server
                     n.connect()
+
                     reply["code"] = PLAYER_JOIN
+
+                    # Send is a blocking call, and waits for Server to return message
                     new_game = n.send(reply)
-                    print("new game received: ", new_game)
                     new_game_code = new_game["code"]
+
                     if new_game_code == GAME_FULL or new_game_code == GAME_IN_PROGRESS:
                         print("Game is either full or in progress...\nClosing client connection...")
                         close_game(n)
                     else:
                         n.set_player_num(new_game["data"])
-                        # UI
+
+                        # UI changes when Player is ready to play game
                         win.fill((200, 200, 128))
                         font = pygame.font.SysFont("comicsans", 45)
                         text = font.render("Player Getting Ready...", True, (255, 0, 0))
                         win.blit(text, (20, 200))
                         pygame.display.update()
+
             if event.type == pygame.QUIT:
                 close_game(n)
 
+    # Game is run for specific client with their assigned player number
     main(n, n.get_player_num())
-
 
 while True:
     menu_screen()
