@@ -162,7 +162,8 @@ def threaded_client(p_conn, p_addr):
                     p_x = int(data["x"])
                     p_y = int(data["y"])
                     move = data["move"]
-                    # White Tile = 0. The Server will set the white tile to player's colour if the tile is white.
+
+                    # White Tile = 0. The Server will set the white tile to player's colour if the tile is white. (Tile colour is locked)
                     if move == Util.LEFT and board.get_item(p_x - 1, p_y) == 0:
                         board.set_cell(p_x - 1, p_y, p_col)
                         board.decrement_white_tile()
