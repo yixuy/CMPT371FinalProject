@@ -1,15 +1,15 @@
 
 # CMPT371 Final Project
 
-This is the repo for CMPT371 Final Project
+This is the team repo for CMPT 371 Final Project
 
 **Team Members**
 
 - Denzel Tjokroardi
-- praneershrest
-- kashk94
+- Praneer Shrestha
+- Kash Khodabakhshi
 - Alisa Koh
-- yixuy
+- Henry Ye
 
 
 Please run this command in Terminal before running the game

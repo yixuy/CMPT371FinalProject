@@ -3,10 +3,9 @@ from NetworkUtils import CLIENT_GAME_TIME_IN_SECONDS, GAME_PLAY, PLAYER_DISCONNE
 import pygame as pg
 import sys
 from .Player import *
-from .Board import *
 from .Tile import *
 from .Util import *
-# Reference: https://www.youtube.com/watch?v=3UxnelT9aCo
+# Adapted from: https://www.youtube.com/watch?v=3UxnelT9aCo
 
 class Game:
     def __init__(self):
@@ -101,13 +100,11 @@ class Game:
         for row in range(TILEHEIGHT):
             for col in range(TILEHEIGHT):
                 self.update_tile(row, col, self.board[row][col])
-        # self.update_tile(10, 10, self.board[10][10])
 
     def get_board(self):
         return self.board
 
     def input_dir(self, network, player):
-
         msg = {
                 "code": GAME_PLAY,
                 "player": str(player),
@@ -127,7 +124,6 @@ class Game:
             if event.type == pg.KEYDOWN:
                 curr_x = self.player.get_x()
                 curr_y = self.player.get_y()
-                colour_index = self.player.get_colour_index()
 
                 if event.key == pg.K_ESCAPE:
                     network.send_only({"code": PLAYER_DISCONNECT})
