@@ -68,7 +68,7 @@ def listen_for_messages(network, player_num):
                     # If the game has not ended, Client will receive updated boards from the Server
                     elif msg["code"] == BOARD and msg["data"] is not None:
                         g.update_board(msg["data"])
-                    
+
             # State: Game Start Prep
             # Client will receive signal to start the game
             elif game_start_prep:
@@ -81,7 +81,7 @@ def listen_for_messages(network, player_num):
                 if msg_code is not None and msg_code == GAME_START:
                     g.update_board(msg["data"])
                     did_server_start_game = True
-                
+
                 # Client is not allowed to start game because at least 2 players are not ready
                 elif msg_code == GAME_NOT_ENOUGH_PLAYERS:
                     print("Game can't start because not enough players ready.")
@@ -178,7 +178,6 @@ def main(network, p):
                     win.blit(text2, (15, 230))
                     pygame.display.flip()
 
-
             if game_start_prep is True:
                 if did_server_start_game:
                     # Move to next game state: Game Start
@@ -204,14 +203,14 @@ def main(network, p):
                 g.game_screen()
 
                 # While game is not over:
-                    # Get player direction and send to Server to handle board updates
-                    # Client receives the updated board from the Server
-                    # Client will update their board and handle UI changes
+                # Get player direction and send to Server to handle board updates
+                # Client receives the updated board from the Server
+                # Client will update their board and handle UI changes
                 while is_game_over is False:
                     g.input_dir(network, player_num)
                     g.update()
                     g.draw()
-                
+
                 # Move to next game state: Game End
                 game_start = False
                 game_end = True
@@ -222,12 +221,12 @@ def main(network, p):
                 # Wait until final scores from the Server have been received
                 while scores is None:
                     continue
-                
+
                 # UI setup to display final scores
                 colours_dict = {1: "Red", 2: "Blue", 3: "Green", 4: "Yellow"}
                 game_over_text = "Game Over!"
                 win.fill((100, 100, 100))
-                text = font.render(game_over_text, True, (255,255,255))
+                text = font.render(game_over_text, True, (255, 255, 255))
                 win.blit(text, (15, 150))
                 pixel_height = 200
                 for player, score in scores.items():
@@ -265,7 +264,7 @@ def menu_screen():
     # Menu screen UI
     win.fill((128, 128, 128))
     font = pygame.font.SysFont("comicsans", 50)
-    text = font.render("Press Space to Play!", True, (255,255,255))
+    text = font.render("Press Space to Play!", True, (255, 255, 255))
     win.blit(text, (20, 200))
     pygame.display.flip()
 
