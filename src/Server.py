@@ -3,9 +3,7 @@ import datetime
 import socket
 import time
 from _thread import *
-from threading import Timer
 
-import GameLogic.Util as Util
 from GameLogic.Board import Board
 from NetworkUtils import *
 
@@ -83,6 +81,7 @@ def delete_client_from_list(p_conn):
                 break
     except:
         pass
+
 
 def broadcast(msg):
     print("clients: ", clients)
@@ -231,6 +230,7 @@ def threaded_client(p_conn, p_addr):
             continue
 
     print("[Player %s] - conn.close()" % player_num)
+
 
 while True:
     connection, address = s.accept()
